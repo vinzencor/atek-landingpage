@@ -7,15 +7,38 @@ export interface CareerJob {
   title: string;
   department?: string; // Keep for backward compatibility
   jobCategory?: string; // New field for job category reference
+  category?: string;
+  jobCode?: string;
+  seniorityLevel?: string;
   location: string;
   type: string;
+  employmentType?: string;
+  workMode?: string;
+  country?: string;
+  state?: string;
+  city?: string;
+  officeLocation?: string;
   experience: string;
+  experienceRequired?: string;
+  educationRequired?: string;
   salary?: string;
+  salaryType?: string;
+  currency?: string;
+  shortDescription?: string;
   description: string;
-  requirements?: string[]; // Made optional for simplified CMS
-  responsibilities?: string[]; // Made optional for simplified CMS
+  requirements?: string; // Admin CMS stores this as free text, not an array
+  responsibilities?: string; // Admin CMS stores this as free text, not an array
+  preferredQualifications?: string;
   benefits?: string[];
   skills?: string[];
+  requiredSkills?: string[];
+  technologies?: string[];
+  applicationEmail?: string;
+  externalApplyUrl?: string;
+  applicationDeadline?: string;
+  numberOfOpenings?: number;
+  displayOrder?: number;
+  urgentHiring?: boolean;
   published: boolean;
   featured: boolean;
   date: string;

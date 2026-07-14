@@ -6,7 +6,7 @@ type SessionPayload = {
 };
 
 function getSecret() {
-  return process.env.CMS_SESSION_SECRET || '';
+  return (typeof process !== 'undefined' && process.env?.CMS_SESSION_SECRET) || import.meta.env.CMS_SESSION_SECRET || '';
 }
 
 function b64url(input: Buffer | string) {

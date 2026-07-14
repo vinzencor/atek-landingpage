@@ -7,47 +7,96 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>ATEK CMS Dashboard</title>
-    <style>
+    <style is:global>
+      * { box-sizing: border-box; }
       body {
         margin: 0;
         font-family: Inter, system-ui, sans-serif;
-        background: #ffffff;
+        background: #f1f5f9;
         color: #0f172a;
       }
-      .layout {
-        max-width: 1200px;
+      .shell {
+        display: flex;
+        min-height: 100vh;
+        align-items: flex-start;
+      }
+      .sidebar {
+        width: 260px;
+        flex: 0 0 260px;
+        min-height: 100vh;
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 20px 14px;
+        position: sticky;
+        top: 0;
+      }
+      .sidebar h1 {
+        font-size: 16px;
+        margin: 4px 8px 18px;
+        color: #fff;
+      }
+      .nav-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        text-align: left;
+        border: none;
+        background: transparent;
+        color: #cbd5e1;
+        padding: 11px 12px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        margin-bottom: 4px;
+      }
+      .nav-btn:hover { background: #1e293b; color: #fff; }
+      .nav-btn.active { background: #0284c7; color: #fff; }
+      .sidebar-footer {
+        margin-top: 24px;
+        padding-top: 14px;
+        border-top: 1px solid #1e293b;
+      }
+      .content {
+        flex: 1;
+        min-width: 0;
+        padding: 24px;
+      }
+      .content-inner {
+        max-width: 1000px;
         margin: 0 auto;
-        padding: 20px;
       }
       .card {
         background: #ffffff;
         border: 1px solid #e2e8f0;
         border-radius: 14px;
-        padding: 16px;
+        padding: 18px;
+        margin-bottom: 16px;
       }
-      .row { display: flex; gap: 8px; flex-wrap: wrap; }
+      .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+      .row-between { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
       .grid { display: grid; gap: 12px; }
       .cols-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
       .cols-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
       .hidden { display: none; }
-      .tab.active { background: #0284c7; color: #fff; border-color: #0284c7; }
-      .tab {
-        border: 1px solid #cbd5e1;
-        background: #f8fafc;
-        color: #0f172a;
-      }
       .btn {
         border: 1px solid #cbd5e1;
         border-radius: 10px;
-        padding: 10px 14px;
+        padding: 9px 14px;
         font-weight: 600;
+        font-size: 13px;
         cursor: pointer;
         background: #f8fafc;
       }
       .btn-primary { background: #0284c7; color: #ffffff; border-color: #0284c7; }
       .btn-success { background: #059669; color: #ffffff; border-color: #059669; }
       .btn-danger { background: #dc2626; color: #ffffff; border-color: #dc2626; }
+      .btn-sm { padding: 6px 10px; font-size: 12px; }
+      .btn:disabled { opacity: 0.6; cursor: not-allowed; }
       .subhead { margin: 6px 0; font-size: 14px; color: #0f172a; font-weight: 700; }
+      .section-title { margin: 0 0 4px; font-size: 20px; }
+      .section-desc { margin: 0 0 14px; color: #64748b; font-size: 13px; }
       .field-label { font-size: 12px; color: #475569; margin: 0 0 6px; font-weight: 600; }
       input, textarea, select {
         width: 100%;
@@ -58,244 +107,468 @@
         padding: 10px;
         font: inherit;
       }
-      textarea { min-height: 110px; }
-      textarea.json { min-height: 300px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+      textarea { min-height: 90px; }
+      textarea.json { min-height: 240px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
       .status { margin-top: 10px; color: #b45309; min-height: 20px; font-size: 14px; }
+      .status.ok { color: #059669; }
+      .status.err { color: #dc2626; }
       .repeat-item {
         border: 1px solid #e2e8f0;
         border-radius: 10px;
         padding: 12px;
         background: #f8fafc;
       }
+      .list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 14px;
+      }
+      .list-vertical {
+        grid-template-columns: 1fr;
+      }
+      .list-vertical .list-item {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 12px;
+      }
+      .list-vertical .list-card-header,
+      .list-vertical .list-item-meta {
+        grid-column: 1;
+      }
+      .list-vertical .list-card-actions {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+        border-top: 0;
+        padding-top: 0;
+        margin-top: 0;
+        min-width: 160px;
+      }
+      .btn-edit {
+        background: #2563eb !important;
+        color: #ffffff !important;
+        border-color: #2563eb !important;
+      }
+      .btn-edit:hover {
+        background: #1d4ed8 !important;
+        border-color: #1d4ed8 !important;
+      }
+      .btn-delete {
+        background: #dc2626 !important;
+        color: #ffffff !important;
+        border-color: #dc2626 !important;
+      }
+      .btn-delete:hover {
+        background: #b91c1c !important;
+        border-color: #b91c1c !important;
+      }
+      .list-card-actions .btn {
+        min-height: 32px;
+        font-weight: 700;
+      }
+      .list-item {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 16px;
+        background: #ffffff;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+        transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+      }
+      .list-item:hover {
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+        transform: translateY(-1px);
+        border-color: #cbd5e1;
+      }
+      .list-item.editing { border-color: #0284c7; background: #eff6ff; box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12); }
+      .list-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+      .list-item-title { font-weight: 700; font-size: 14.5px; line-height: 1.35; color: #0f172a; }
+      .list-item-meta {
+        font-size: 12px;
+        color: #64748b;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 6px;
+      }
+      .list-item-meta span:not(:last-child)::after { content: '·'; margin-left: 6px; color: #cbd5e1; }
+      .list-card-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: auto;
+        padding-top: 10px;
+        border-top: 1px solid #eef2f7;
+      }
+      .list-card-actions .btn { flex: 1; }
+      .badge {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        padding: 3px 9px;
+        border-radius: 999px;
+        background: #e2e8f0;
+        color: #334155;
+        white-space: nowrap;
+      }
+      .badge::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.7;
+      }
+      .badge.on { background: #dcfce7; color: #166534; }
+      .badge.off { background: #fee2e2; color: #991b1b; }
+      .career-groups { display: grid; gap: 22px; }
+      .career-group-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        font-size: 14px;
+        color: #0f172a;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #e2e8f0;
+      }
+      .career-group-count {
+        font-size: 11px;
+        font-weight: 700;
+        color: #475569;
+        background: #e2e8f0;
+        border-radius: 999px;
+        padding: 2px 8px;
+      }
+      .career-group-list { margin-bottom: 0; }
+      .empty-state {
+        text-align: center;
+        color: #94a3b8;
+        padding: 24px;
+        font-size: 13px;
+        border: 1px dashed #cbd5e1;
+        border-radius: 10px;
+      }
+      details.advanced { margin-top: 4px; }
+      details.advanced summary {
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        color: #475569;
+      }
       @media (max-width: 900px) {
+        .shell { flex-direction: column; }
+        .sidebar { width: 100%; flex: none; position: static; min-height: auto; }
+        .nav-btn { display: inline-flex; width: auto; }
+        .row#navRow { flex-direction: row; overflow-x: auto; }
         .cols-2, .cols-3 { grid-template-columns: 1fr; }
+        .list-vertical .list-item {
+          grid-template-columns: 1fr;
+        }
+        .list-vertical .list-card-actions {
+          grid-column: 1;
+          grid-row: auto;
+        }
       }
     </style>
   </head>
   <body>
-    <main class="layout grid">
-      <section class="card grid">
-        <div class="row" style="justify-content: space-between; align-items: center;">
-          <h1 style="margin:0;">ATEK CMS Dashboard</h1>
-          <button id="logoutBtn" class="btn btn-danger">Logout</button>
+    <div class="shell">
+      <aside class="sidebar">
+        <h1>ATEK CMS</h1>
+        <div class="row" id="navRow" style="flex-direction: column; align-items: stretch;">
+          <button class="nav-btn active" data-key="careers">Careers</button>
+          <button class="nav-btn" data-key="job-categories">Job Categories</button>
+          <button class="nav-btn" data-key="applications">Applications</button>
+          <button class="nav-btn" data-key="career-page-settings">Career Page Settings</button>
+          <button class="nav-btn" data-key="downloadable-guides">Downloadable Guides</button>
         </div>
-
-        <div class="row" id="tabs">
-          <button class="btn tab active" data-key="careers">Careers</button>
-          <button class="btn tab" data-key="job-categories">Job Categories</button>
-          <button class="btn tab" data-key="career-page-settings">Career Page Settings</button>
-          <button class="btn tab" data-key="downloadable-guides">Downloadable Guides</button>
+        <div class="sidebar-footer">
+          <button id="logoutBtn" class="btn btn-danger" style="width: 100%;">Logout</button>
         </div>
+      </aside>
 
-        <div id="careersTab" class="grid card">
-          <h3 style="margin:0;">Add Career (Job Posting)</h3>
-          <div class="subhead">Basic Information</div>
-          <div class="cols-3">
-            <div><p class="field-label">Job Title *</p><input id="career_jobTitle" /></div>
-            <div><p class="field-label">Job Code</p><input id="career_jobCode" /></div>
-            <div><p class="field-label">Category *</p><select id="career_category"><option>Software & Development</option><option>Engineering & Infrastructure</option><option>Experience & Design</option><option>Quality & Data</option></select></div>
-            <div><p class="field-label">Seniority Level *</p><select id="career_seniority"><option>Entry Level</option><option>Junior</option><option>Mid Level</option><option>Senior Level</option><option>Lead</option><option>Manager</option></select></div>
-            <div><p class="field-label">Employment Type *</p><select id="career_employmentType"><option>Full-Time</option><option>Part-Time</option><option>Contract</option><option>Internship</option><option>Temporary</option><option>Freelance</option></select></div>
-          </div>
-          <div class="subhead">Location</div>
-          <div class="cols-3">
-            <div><p class="field-label">Country</p><input id="career_country" /></div>
-            <div><p class="field-label">State</p><input id="career_state" /></div>
-            <div><p class="field-label">City</p><input id="career_city" /></div>
-            <div><p class="field-label">Office Location</p><input id="career_officeLocation" /></div>
-            <div><p class="field-label">Work Mode *</p><select id="career_workMode"><option>On-site</option><option>Remote</option><option>Hybrid</option></select></div>
-          </div>
-          <div class="subhead">Salary</div>
-          <div class="cols-3">
-            <div><p class="field-label">Salary</p><input id="career_salary" /></div>
-            <div><p class="field-label">Salary Type</p><select id="career_salaryType"><option>Annual</option><option>Monthly</option><option>Hourly</option></select></div>
-            <div><p class="field-label">Currency</p><input id="career_currency" /></div>
-          </div>
-          <div class="subhead">Experience & Education</div>
-          <div class="cols-2">
-            <div><p class="field-label">Experience Required</p><input id="career_experienceRequired" /></div>
-            <div><p class="field-label">Education Required</p><input id="career_educationRequired" /></div>
-          </div>
-          <div class="subhead">Job Content</div>
-          <div><p class="field-label">Short Description</p><textarea id="career_shortDescription"></textarea></div>
-          <div><p class="field-label">Job Description</p><textarea id="career_description"></textarea></div>
-          <div><p class="field-label">Responsibilities</p><textarea id="career_responsibilities"></textarea></div>
-          <div><p class="field-label">Requirements</p><textarea id="career_requirements"></textarea></div>
-          <div><p class="field-label">Preferred Qualifications</p><textarea id="career_preferredQualifications"></textarea></div>
-          <div class="subhead">Skills</div>
-          <div class="cols-2">
-            <div><p class="field-label">Required Skills (comma separated)</p><input id="career_requiredSkills" /></div>
-            <div><p class="field-label">Technologies (comma separated)</p><input id="career_technologies" /></div>
-          </div>
-          <div class="subhead">Application Details</div>
-          <div class="cols-3">
-            <div><p class="field-label">Application Email</p><input id="career_applicationEmail" type="email" /></div>
-            <div><p class="field-label">External Apply URL</p><input id="career_externalUrl" type="url" /></div>
-            <div><p class="field-label">Application Deadline</p><input id="career_deadline" type="date" /></div>
-            <div><p class="field-label">Number of Openings</p><input id="career_openings" type="number" min="0" /></div>
-          </div>
-          <div class="subhead">Status</div>
-          <div class="cols-3">
-            <label><input id="career_featured" type="checkbox" /> Featured Job</label>
-            <label><input id="career_urgent" type="checkbox" /> Urgent Hiring</label>
-            <label><input id="career_published" type="checkbox" checked /> Published</label>
-          </div>
-          <div class="cols-3">
-            <div><p class="field-label">Display Order</p><input id="career_displayOrder" type="number" min="0" /></div>
-          </div>
-          <div class="row"><button id="careerAddBtn" class="btn btn-primary">Add Career</button></div>
+      <main class="content">
+        <div class="content-inner">
+
+          <!-- CAREERS -->
+          <section id="careersTab" class="grid">
+            <div class="card">
+              <h2 class="section-title">Careers</h2>
+              <p class="section-desc">Existing job postings. Click Edit to update, or Delete to remove.</p>
+              <div id="careersList" class="list"></div>
+            </div>
+
+            <div class="card grid">
+              <h3 style="margin:0;" id="careerFormTitle">Add Career (Job Posting)</h3>
+              <div class="subhead">Basic Information</div>
+              <div class="cols-3">
+                <div><p class="field-label">Job Title *</p><input id="career_jobTitle" /></div>
+                <div><p class="field-label">Job Code</p><input id="career_jobCode" /></div>
+                <div><p class="field-label">Category *</p><select id="career_category"><option value="">Select category</option></select></div>
+                <div><p class="field-label">Seniority Level *</p><select id="career_seniority"><option>Entry Level</option><option>Junior</option><option>Mid Level</option><option>Senior Level</option><option>Lead</option><option>Manager</option></select></div>
+                <div><p class="field-label">Employment Type *</p><select id="career_employmentType"><option>Full-Time</option><option>Part-Time</option><option>Contract</option><option>Internship</option><option>Temporary</option><option>Freelance</option></select></div>
+              </div>
+              <div class="subhead">Location</div>
+              <div class="cols-3">
+                <div><p class="field-label">Country</p><input id="career_country" /></div>
+                <div><p class="field-label">State</p><input id="career_state" /></div>
+                <div><p class="field-label">City</p><input id="career_city" /></div>
+                <div><p class="field-label">Office Location</p><input id="career_officeLocation" /></div>
+                <div><p class="field-label">Work Mode *</p><select id="career_workMode"><option>On-site</option><option>Remote</option><option>Hybrid</option></select></div>
+              </div>
+              <div class="subhead">Salary</div>
+              <div class="cols-3">
+                <div><p class="field-label">Salary</p><input id="career_salary" /></div>
+                <div><p class="field-label">Salary Type</p><select id="career_salaryType"><option>Annual</option><option>Monthly</option><option>Hourly</option></select></div>
+                <div><p class="field-label">Currency</p><input id="career_currency" /></div>
+              </div>
+              <div class="subhead">Experience & Education</div>
+              <div class="cols-2">
+                <div><p class="field-label">Experience Required</p><input id="career_experienceRequired" /></div>
+                <div><p class="field-label">Education Required</p><input id="career_educationRequired" /></div>
+              </div>
+              <div class="subhead">Job Content</div>
+              <div><p class="field-label">Short Description</p><textarea id="career_shortDescription"></textarea></div>
+              <div><p class="field-label">Job Description</p><textarea id="career_description"></textarea></div>
+              <div><p class="field-label">Responsibilities</p><textarea id="career_responsibilities"></textarea></div>
+              <div><p class="field-label">Requirements</p><textarea id="career_requirements"></textarea></div>
+              <div><p class="field-label">Preferred Qualifications</p><textarea id="career_preferredQualifications"></textarea></div>
+              <div class="subhead">Skills</div>
+              <div class="cols-2">
+                <div><p class="field-label">Required Skills (comma separated)</p><input id="career_requiredSkills" /></div>
+                <div><p class="field-label">Technologies (comma separated)</p><input id="career_technologies" /></div>
+              </div>
+              <div class="subhead">Application Details</div>
+              <div class="cols-3">
+                <div><p class="field-label">Application Email</p><input id="career_applicationEmail" type="email" /></div>
+                <div><p class="field-label">External Apply URL</p><input id="career_externalUrl" type="url" /></div>
+                <div><p class="field-label">Application Deadline</p><input id="career_deadline" type="date" /></div>
+                <div><p class="field-label">Number of Openings</p><input id="career_openings" type="number" min="0" /></div>
+              </div>
+              <div class="subhead">Status</div>
+              <div class="cols-3">
+                <label><input id="career_featured" type="checkbox" /> Featured Job</label>
+                <label><input id="career_urgent" type="checkbox" /> Urgent Hiring</label>
+                <label><input id="career_published" type="checkbox" checked /> Published</label>
+              </div>
+              <div class="cols-3">
+                <div><p class="field-label">Display Order</p><input id="career_displayOrder" type="number" min="0" /></div>
+              </div>
+              <div class="row">
+                <button id="careerSaveBtn" class="btn btn-primary">Add Career</button>
+                <button id="careerCancelBtn" class="btn hidden">Cancel Edit</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- APPLICATIONS -->
+          <section id="applicationsTab" class="grid hidden">
+            <div class="card">
+              <h2 class="section-title">Job Applications</h2>
+              <p class="section-desc">Review submitted applications, approve/reject, and download resumes.</p>
+              <div id="applicationsList" class="list list-vertical"></div>
+            </div>
+          </section>
+
+          <!-- JOB CATEGORIES -->
+          <section id="jobCategoriesTab" class="grid hidden">
+            <div class="card">
+              <h2 class="section-title">Job Categories</h2>
+              <p class="section-desc">Existing job categories. Click Edit to update, or Delete to remove.</p>
+              <div id="categoriesList" class="list list-vertical"></div>
+            </div>
+
+            <div class="card grid">
+              <h3 style="margin:0;" id="catFormTitle">Add Job Category</h3>
+              <div class="cols-2">
+                <div><p class="field-label">Category Name *</p><input id="cat_name" /></div>
+                <div><p class="field-label">Slug</p><input id="cat_slug" /></div>
+                <div style="grid-column:1/-1;"><p class="field-label">Short Description</p><textarea id="cat_description"></textarea></div>
+                <div><p class="field-label">Category Icon</p><input id="cat_icon" /></div>
+                <div><p class="field-label">Category Banner Image</p><input id="cat_banner" /></div>
+                <div><p class="field-label">Display Order</p><input id="cat_order" type="number" min="0" /></div>
+                <div><p class="field-label">Status *</p><select id="cat_status"><option>Active</option><option>Inactive</option></select></div>
+                <div><label><input id="cat_showCareers" type="checkbox" checked /> Show on Careers Page</label></div>
+              </div>
+              <div class="row">
+                <button id="catSaveBtn" class="btn btn-primary">Add Job Category</button>
+                <button id="catCancelBtn" class="btn hidden">Cancel Edit</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- CAREER PAGE SETTINGS -->
+          <section id="careerSettingsTab" class="grid hidden">
+            <div class="card grid">
+              <h2 class="section-title" style="margin-bottom:0;">Career Page Settings</h2>
+              <div class="subhead">Hero Section</div>
+              <div class="cols-2">
+                <div><p class="field-label">Hero Title *</p><input id="set_heroTitle" /></div>
+                <div><p class="field-label">Hero Banner Image</p><input id="set_heroBannerImage" /></div>
+                <div style="grid-column:1/-1;"><p class="field-label">Hero Subtitle *</p><textarea id="set_heroSubtitle"></textarea></div>
+                <div><p class="field-label">Hero Background Image</p><input id="set_heroBackgroundImage" /></div>
+              </div>
+
+              <div class="subhead">Why Join Section</div>
+              <div class="cols-2">
+                <div><p class="field-label">Section Title *</p><input id="set_whyTitle" /></div>
+                <div style="grid-column:1/-1;"><p class="field-label">Section Description *</p><textarea id="set_whyDescription"></textarea></div>
+              </div>
+
+              <div class="subhead">Benefits</div>
+              <div id="benefitsList" class="grid"></div>
+              <div class="row"><button id="addBenefitBtn" class="btn">Add Benefit</button></div>
+
+              <div class="subhead">Application Process</div>
+              <div id="appStepsList" class="grid"></div>
+              <div class="row"><button id="addStepBtn" class="btn">Add Step</button></div>
+
+              <div class="subhead">Contact Information</div>
+              <div class="cols-2">
+                <div><p class="field-label">Contact Email</p><input id="set_contactEmail" type="email" /></div>
+                <div><p class="field-label">Office Location</p><input id="set_officeLocation" /></div>
+                <div><p class="field-label">Contact Phone</p><input id="set_contactPhone" /></div>
+                <div><p class="field-label">Google Maps Link</p><input id="set_googleMaps" /></div>
+              </div>
+
+              <div class="subhead">Equal Opportunity Statement</div>
+              <div><p class="field-label">Equal Opportunity Content</p><textarea id="set_equalOpportunity"></textarea></div>
+
+              <div class="subhead">Career Page Visibility Settings</div>
+              <div class="cols-3">
+                <label><input id="set_enableCareerPage" type="checkbox" checked /> Enable Career Page</label>
+                <label><input id="set_showOpenPositions" type="checkbox" checked /> Show Open Positions Section</label>
+                <label><input id="set_showBenefits" type="checkbox" checked /> Show Benefits Section</label>
+                <label><input id="set_showApplicationProcess" type="checkbox" checked /> Show Application Process</label>
+                <label><input id="set_showContact" type="checkbox" checked /> Show Contact Section</label>
+                <label><input id="set_showDownloads" type="checkbox" checked /> Show Downloads Section</label>
+              </div>
+
+              <div class="subhead">SEO</div>
+              <div class="cols-2">
+                <div><p class="field-label">SEO Title</p><input id="set_seoTitle" /></div>
+                <div><p class="field-label">Open Graph Image</p><input id="set_ogImage" /></div>
+                <div style="grid-column:1/-1;"><p class="field-label">SEO Description</p><textarea id="set_seoDescription"></textarea></div>
+                <div style="grid-column:1/-1;"><p class="field-label">SEO Keywords (comma separated)</p><input id="set_seoKeywords" /></div>
+              </div>
+
+              <div class="row">
+                <button id="loadSettingsBtn" class="btn">Reload Settings</button>
+                <button id="saveSettingsBtn" class="btn btn-success">Save Settings</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- DOWNLOADABLE GUIDES -->
+          <section id="guidesTab" class="grid hidden">
+            <div class="card">
+              <h2 class="section-title">Downloadable Guides</h2>
+              <p class="section-desc">Existing guides. Click Edit to update, or Delete to remove.</p>
+              <div id="guidesList" class="list"></div>
+            </div>
+
+            <div class="card grid">
+              <h3 style="margin:0;" id="guideFormTitle">Add Downloadable Guide</h3>
+              <div class="subhead">Basic Information</div>
+              <div class="cols-2">
+                <div><p class="field-label">Guide Title *</p><input id="guide_title" /></div>
+                <div><p class="field-label">Slug</p><input id="guide_slug" /></div>
+                <div style="grid-column:1/-1;"><p class="field-label">Short Description *</p><textarea id="guide_description"></textarea></div>
+                <div><p class="field-label">Category</p><select id="guide_category"><option>SaaS</option><option>DevOps</option><option>Cloud</option><option>Pay Pilot</option><option>AI</option><option>Security</option><option>Engineering</option><option>Business</option><option>Product</option><option>Other</option></select></div>
+                <div><p class="field-label">Guide Type</p><select id="guide_type"><option>Guide</option><option>Checklist</option><option>Toolkit</option><option>Workbook</option><option>Whitepaper</option><option>eBook</option><option>Template</option><option>Case Study</option></select></div>
+              </div>
+
+              <div class="subhead">Media</div>
+              <div class="cols-2">
+                <div><p class="field-label">Thumbnail Image</p><input id="guide_thumbnail" /></div>
+                <div><p class="field-label">Cover Image</p><input id="guide_cover" /></div>
+                <div><p class="field-label">Guide File</p><input id="guide_file" /></div>
+              </div>
+
+              <div class="subhead">Download Button</div>
+              <div class="cols-2">
+                <div><p class="field-label">Button Text</p><input id="guide_buttonText" value="Download" /></div>
+                <div><p class="field-label">External Download URL</p><input id="guide_externalUrl" /></div>
+              </div>
+
+              <div class="subhead">Display Settings</div>
+              <div class="cols-3">
+                <label><input id="guide_featured" type="checkbox" /> Featured Guide</label>
+                <div><p class="field-label">Display Order</p><input id="guide_order" type="number" min="0" value="1" /></div>
+                <div><p class="field-label">Status</p><select id="guide_status"><option>Active</option><option>Inactive</option></select></div>
+              </div>
+
+              <div class="subhead">Analytics</div>
+              <div class="cols-2">
+                <label><input id="guide_trackDownloads" type="checkbox" checked /> Track Downloads</label>
+                <div><p class="field-label">Download Count</p><input id="guide_downloadCount" type="number" value="0" /></div>
+              </div>
+
+              <div class="subhead">SEO</div>
+              <div class="cols-2">
+                <div><p class="field-label">SEO Title</p><input id="guide_seoTitle" /></div>
+                <div style="grid-column:1/-1;"><p class="field-label">SEO Description</p><textarea id="guide_seoDescription"></textarea></div>
+                <div style="grid-column:1/-1;"><p class="field-label">SEO Keywords (comma separated)</p><input id="guide_seoKeywords" /></div>
+              </div>
+
+              <div class="row">
+                <button id="guideSaveBtn" class="btn btn-primary">Add Guide</button>
+                <button id="guideCancelBtn" class="btn hidden">Cancel Edit</button>
+              </div>
+
+              <details class="advanced">
+                <summary>Advanced: edit raw JSON</summary>
+                <div class="row" style="margin-top:10px;">
+                  <button id="loadGuidesBtn" class="btn">Reload Guides JSON</button>
+                  <button id="saveGuidesBtn" class="btn btn-success">Save Guides JSON</button>
+                </div>
+                <textarea id="guidesEditor" class="json" style="margin-top:10px;">{}</textarea>
+              </details>
+            </div>
+          </section>
+
+          <p id="status" class="status"></p>
         </div>
-
-        <div id="jobCategoriesTab" class="grid card hidden">
-          <h3 style="margin:0;">Add Job Category</h3>
-          <div class="cols-2">
-            <div><p class="field-label">Category Name *</p><input id="cat_name" /></div>
-            <div><p class="field-label">Slug</p><input id="cat_slug" /></div>
-            <div style="grid-column:1/-1;"><p class="field-label">Short Description</p><textarea id="cat_description"></textarea></div>
-            <div><p class="field-label">Category Icon</p><input id="cat_icon" /></div>
-            <div><p class="field-label">Category Banner Image</p><input id="cat_banner" /></div>
-            <div><p class="field-label">Display Order</p><input id="cat_order" type="number" min="0" /></div>
-            <div><p class="field-label">Status *</p><select id="cat_status"><option>Active</option><option>Inactive</option></select></div>
-            <div><label><input id="cat_showCareers" type="checkbox" checked /> Show on Careers Page</label></div>
-          </div>
-          <div class="row"><button id="catAddBtn" class="btn btn-primary">Add Job Category</button></div>
-        </div>
-
-        <div id="careerSettingsTab" class="grid card hidden">
-          <h3 style="margin:0;">Career Page Settings</h3>
-          <div class="subhead">Hero Section</div>
-          <div class="cols-2">
-            <div><p class="field-label">Hero Title *</p><input id="set_heroTitle" /></div>
-            <div><p class="field-label">Hero Banner Image</p><input id="set_heroBannerImage" /></div>
-            <div style="grid-column:1/-1;"><p class="field-label">Hero Subtitle *</p><textarea id="set_heroSubtitle"></textarea></div>
-            <div><p class="field-label">Hero Background Image</p><input id="set_heroBackgroundImage" /></div>
-          </div>
-
-          <div class="subhead">Why Join Section</div>
-          <div class="cols-2">
-            <div><p class="field-label">Section Title *</p><input id="set_whyTitle" /></div>
-            <div style="grid-column:1/-1;"><p class="field-label">Section Description *</p><textarea id="set_whyDescription"></textarea></div>
-          </div>
-
-          <div class="subhead">Benefits</div>
-          <div id="benefitsList" class="grid"></div>
-          <div class="row"><button id="addBenefitBtn" class="btn">Add Benefit</button></div>
-
-          <div class="subhead">Application Process</div>
-          <div id="appStepsList" class="grid"></div>
-          <div class="row"><button id="addStepBtn" class="btn">Add Step</button></div>
-
-          <div class="subhead">Contact Information</div>
-          <div class="cols-2">
-            <div><p class="field-label">Contact Email</p><input id="set_contactEmail" type="email" /></div>
-            <div><p class="field-label">Office Location</p><input id="set_officeLocation" /></div>
-            <div><p class="field-label">Contact Phone</p><input id="set_contactPhone" /></div>
-            <div><p class="field-label">Google Maps Link</p><input id="set_googleMaps" /></div>
-          </div>
-
-          <div class="subhead">Equal Opportunity Statement</div>
-          <div><p class="field-label">Equal Opportunity Content</p><textarea id="set_equalOpportunity"></textarea></div>
-
-          <div class="subhead">Career Page Visibility Settings</div>
-          <div class="cols-3">
-            <label><input id="set_enableCareerPage" type="checkbox" checked /> Enable Career Page</label>
-            <label><input id="set_showOpenPositions" type="checkbox" checked /> Show Open Positions Section</label>
-            <label><input id="set_showBenefits" type="checkbox" checked /> Show Benefits Section</label>
-            <label><input id="set_showApplicationProcess" type="checkbox" checked /> Show Application Process</label>
-            <label><input id="set_showContact" type="checkbox" checked /> Show Contact Section</label>
-            <label><input id="set_showDownloads" type="checkbox" checked /> Show Downloads Section</label>
-          </div>
-
-          <div class="subhead">SEO</div>
-          <div class="cols-2">
-            <div><p class="field-label">SEO Title</p><input id="set_seoTitle" /></div>
-            <div><p class="field-label">Open Graph Image</p><input id="set_ogImage" /></div>
-            <div style="grid-column:1/-1;"><p class="field-label">SEO Description</p><textarea id="set_seoDescription"></textarea></div>
-            <div style="grid-column:1/-1;"><p class="field-label">SEO Keywords (comma separated)</p><input id="set_seoKeywords" /></div>
-          </div>
-
-          <div class="row">
-            <button id="loadSettingsBtn" class="btn">Load Settings</button>
-            <button id="saveSettingsBtn" class="btn btn-success">Save Settings</button>
-          </div>
-        </div>
-
-        <div id="guidesTab" class="grid card hidden">
-          <h3 style="margin:0;">Add Downloadable Guide</h3>
-          <div class="subhead">Basic Information</div>
-          <div class="cols-2">
-            <div><p class="field-label">Guide Title *</p><input id="guide_title" /></div>
-            <div><p class="field-label">Slug</p><input id="guide_slug" /></div>
-            <div style="grid-column:1/-1;"><p class="field-label">Short Description *</p><textarea id="guide_description"></textarea></div>
-            <div><p class="field-label">Category</p><select id="guide_category"><option>SaaS</option><option>DevOps</option><option>Cloud</option><option>Pay Pilot</option><option>AI</option><option>Security</option><option>Engineering</option><option>Business</option><option>Product</option><option>Other</option></select></div>
-            <div><p class="field-label">Guide Type</p><select id="guide_type"><option>Guide</option><option>Checklist</option><option>Toolkit</option><option>Workbook</option><option>Whitepaper</option><option>eBook</option><option>Template</option><option>Case Study</option></select></div>
-          </div>
-
-          <div class="subhead">Media</div>
-          <div class="cols-2">
-            <div><p class="field-label">Thumbnail Image</p><input id="guide_thumbnail" /></div>
-            <div><p class="field-label">Cover Image</p><input id="guide_cover" /></div>
-            <div><p class="field-label">Guide File</p><input id="guide_file" /></div>
-          </div>
-
-          <div class="subhead">Download Button</div>
-          <div class="cols-2">
-            <div><p class="field-label">Button Text</p><input id="guide_buttonText" value="Download" /></div>
-            <div><p class="field-label">External Download URL</p><input id="guide_externalUrl" /></div>
-          </div>
-
-          <div class="subhead">Display Settings</div>
-          <div class="cols-3">
-            <label><input id="guide_featured" type="checkbox" /> Featured Guide</label>
-            <div><p class="field-label">Display Order</p><input id="guide_order" type="number" min="0" value="1" /></div>
-            <div><p class="field-label">Status</p><select id="guide_status"><option>Active</option><option>Inactive</option></select></div>
-          </div>
-
-          <div class="subhead">Analytics</div>
-          <div class="cols-2">
-            <label><input id="guide_trackDownloads" type="checkbox" checked /> Track Downloads</label>
-            <div><p class="field-label">Download Count (read-only)</p><input id="guide_downloadCount" type="number" value="0" readonly /></div>
-          </div>
-
-          <div class="subhead">SEO</div>
-          <div class="cols-2">
-            <div><p class="field-label">SEO Title</p><input id="guide_seoTitle" /></div>
-            <div style="grid-column:1/-1;"><p class="field-label">SEO Description</p><textarea id="guide_seoDescription"></textarea></div>
-            <div style="grid-column:1/-1;"><p class="field-label">SEO Keywords (comma separated)</p><input id="guide_seoKeywords" /></div>
-          </div>
-
-          <div class="row">
-            <button id="guideAddBtn" class="btn btn-primary">Add Guide</button>
-            <button id="loadGuidesBtn" class="btn">Load Guides JSON</button>
-            <button id="saveGuidesBtn" class="btn btn-success">Save Guides JSON</button>
-          </div>
-          <textarea id="guidesEditor" class="json">{}</textarea>
-        </div>
-
-        <p id="status" class="status"></p>
-      </section>
-    </main>
+      </main>
+    </div>
 
     <script>
       const STORAGE_KEY = 'atek-firebase-cms-token';
       const endpoints = {
         'careers': '/api/admin/careers',
         'job-categories': '/api/admin/job-categories',
+        'applications': '/api/admin/job-applications',
         'career-page-settings': '/api/admin/career-page-settings',
         'downloadable-guides': '/api/admin/downloadable-guides',
       };
 
       const statusEl = document.getElementById('status');
-      const tabs = document.querySelectorAll('#tabs .tab');
+      const navBtns = document.querySelectorAll('.nav-btn');
       const sections = {
         careers: document.getElementById('careersTab'),
         'job-categories': document.getElementById('jobCategoriesTab'),
+        applications: document.getElementById('applicationsTab'),
         'career-page-settings': document.getElementById('careerSettingsTab'),
         'downloadable-guides': document.getElementById('guidesTab'),
       };
 
-      function setStatus(message) {
+      // key of the item currently being edited, per entity (null = adding new)
+      const editState = { careers: null, categories: null, guides: null };
+      // in-memory cache of the last-loaded full object per entity
+      const cache = { careers: {}, categories: {}, guides: {}, applications: [] };
+      const uiState = { expandedApplicationId: null };
+
+      function setStatus(message, kind) {
         statusEl.textContent = message || '';
+        statusEl.className = 'status' + (kind ? ' ' + kind : '');
       }
 
       function getToken() {
@@ -315,6 +588,12 @@
         return String(raw || '').split(',').map(x => x.trim()).filter(Boolean);
       }
 
+      function escapeHtml(value) {
+        return String(value || '').replace(/[&<>"']/g, ch => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+        }[ch]));
+      }
+
       async function authFetch(url, options = {}) {
         const token = getToken();
         if (!token) {
@@ -332,10 +611,138 @@
         Object.keys(sections).forEach(sectionKey => {
           sections[sectionKey].classList.toggle('hidden', sectionKey !== key);
         });
-        tabs.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-key') === key));
+        navBtns.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-key') === key));
+
+        if (key === 'careers') refreshCareersList();
+        if (key === 'job-categories') refreshCategoriesList();
+        if (key === 'applications') refreshApplicationsList();
+        if (key === 'downloadable-guides') refreshGuidesList();
+        if (key === 'career-page-settings') loadCareerSettings();
       }
 
-      tabs.forEach(btn => {
+      function renderApplicationsList() {
+        const container = document.getElementById('applicationsList');
+        const items = Array.isArray(cache.applications) ? cache.applications : [];
+
+        if (!items.length) {
+          container.innerHTML = '<div class="empty-state">No applications submitted yet.</div>';
+          return;
+        }
+
+        container.innerHTML = '';
+
+        items.forEach(item => {
+          const isExpanded = uiState.expandedApplicationId === item.id;
+          const row = document.createElement('div');
+          row.className = 'list-item';
+
+          const statusClass = item.status === 'approved' ? 'on' : item.status === 'rejected' ? 'off' : '';
+          const createdAt = item.createdAt ? new Date(item.createdAt).toLocaleString() : 'Unknown';
+          const resumeText = item.resume?.filename
+            ? `${item.resume.filename} (${Math.round((Number(item.resume.size || 0) / 1024) || 0)} KB)`
+            : 'No resume';
+
+          row.innerHTML = `
+            <div class="list-card-header">
+              <div class="list-item-title">${escapeHtml(item.name || 'Unknown applicant')}</div>
+              <span class="badge ${statusClass}">${escapeHtml(item.status || 'pending')}</span>
+            </div>
+            <div class="list-item-meta">
+              <span>${escapeHtml(item.jobRole || 'Unspecified role')}</span>
+              <span>${escapeHtml(item.email || '-')}</span>
+              <span>${escapeHtml(item.phone || '-')}</span>
+              <span>${escapeHtml(createdAt)}</span>
+            </div>
+            ${isExpanded ? `
+              <div class="list-item-meta" style="grid-column:1/-1; border-top:1px solid #eef2f7; padding-top:10px;">
+                <span>${escapeHtml(resumeText)}</span>
+                ${item.updatedAt ? `<span>Updated ${escapeHtml(new Date(item.updatedAt).toLocaleString())}</span>` : ''}
+              </div>
+            ` : ''}
+            <div class="list-card-actions">
+              <button class="btn btn-sm btn-edit" data-view>${isExpanded ? 'Hide' : 'View'}</button>
+              <button class="btn btn-sm btn-success" data-approve>Approve</button>
+              <button class="btn btn-sm btn-danger" data-reject>Reject</button>
+              <button class="btn btn-sm" data-download>Download</button>
+            </div>
+          `;
+
+          row.querySelector('[data-view]').addEventListener('click', () => {
+            uiState.expandedApplicationId = isExpanded ? null : item.id;
+            renderApplicationsList();
+          });
+
+          row.querySelector('[data-approve]').addEventListener('click', () => updateApplicationStatus(item.id, 'approved'));
+          row.querySelector('[data-reject]').addEventListener('click', () => updateApplicationStatus(item.id, 'rejected'));
+          row.querySelector('[data-download]').addEventListener('click', () => {
+            downloadApplicationResume(item.id);
+          });
+
+          container.appendChild(row);
+        });
+      }
+
+      async function refreshApplicationsList() {
+        try {
+          const data = await authFetch(endpoints['applications']);
+          cache.applications = Array.isArray(data) ? data : [];
+          renderApplicationsList();
+        } catch (error) {
+          setStatus(error.message || 'Failed to load applications', 'err');
+        }
+      }
+
+      async function updateApplicationStatus(id, status) {
+        try {
+          await authFetch(endpoints['applications'], {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, status }),
+          });
+
+          const target = cache.applications.find(item => item.id === id);
+          if (target) {
+            target.status = status;
+            target.updatedAt = new Date().toISOString();
+          }
+
+          renderApplicationsList();
+          setStatus(`Application marked as ${status}.`, 'ok');
+        } catch (error) {
+          setStatus(error.message || 'Failed to update status', 'err');
+        }
+      }
+
+      async function downloadApplicationResume(id) {
+        try {
+          const token = getToken();
+          const response = await fetch(`/api/admin/job-applications/${encodeURIComponent(id)}/resume`, {
+            headers: { Authorization: 'Bearer ' + token },
+          });
+
+          if (!response.ok) {
+            const payload = await response.json().catch(() => ({}));
+            throw new Error(payload.error || 'Failed to download resume');
+          }
+
+          const disposition = response.headers.get('Content-Disposition') || '';
+          const filenameMatch = disposition.match(/filename="([^"]+)"/i);
+          const filename = filenameMatch ? filenameMatch[1] : `resume-${id}`;
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          const anchor = document.createElement('a');
+          anchor.href = url;
+          anchor.download = filename;
+          document.body.appendChild(anchor);
+          anchor.click();
+          anchor.remove();
+          URL.revokeObjectURL(url);
+        } catch (error) {
+          setStatus(error.message || 'Failed to download resume', 'err');
+        }
+      }
+
+      navBtns.forEach(btn => {
         btn.addEventListener('click', () => {
           activateTab(btn.getAttribute('data-key'));
         });
@@ -346,12 +753,217 @@
         window.location.href = '/admin';
       });
 
-      async function addCareer() {
+      // ---------- CAREERS ----------
+
+      function populateCareerForm(item) {
+        syncCareerCategoryOptions(item.category || item.jobCategory || '');
+        document.getElementById('career_jobTitle').value = item.title || '';
+        document.getElementById('career_jobCode').value = item.jobCode || '';
+        document.getElementById('career_category').value = item.category || item.jobCategory || '';
+        document.getElementById('career_seniority').value = item.seniorityLevel || '';
+        document.getElementById('career_employmentType').value = item.employmentType || item.type || '';
+        document.getElementById('career_country').value = item.country || '';
+        document.getElementById('career_state').value = item.state || '';
+        document.getElementById('career_city').value = item.city || '';
+        document.getElementById('career_officeLocation').value = item.officeLocation || '';
+        document.getElementById('career_workMode').value = item.workMode || '';
+        document.getElementById('career_salary').value = item.salary || '';
+        document.getElementById('career_salaryType').value = item.salaryType || '';
+        document.getElementById('career_currency').value = item.currency || '';
+        document.getElementById('career_experienceRequired').value = item.experienceRequired || '';
+        document.getElementById('career_educationRequired').value = item.educationRequired || '';
+        document.getElementById('career_shortDescription').value = item.shortDescription || '';
+        document.getElementById('career_description').value = item.description || '';
+        document.getElementById('career_responsibilities').value = item.responsibilities || '';
+        document.getElementById('career_requirements').value = item.requirements || '';
+        document.getElementById('career_preferredQualifications').value = item.preferredQualifications || '';
+        document.getElementById('career_requiredSkills').value = Array.isArray(item.requiredSkills) ? item.requiredSkills.join(', ') : '';
+        document.getElementById('career_technologies').value = Array.isArray(item.technologies) ? item.technologies.join(', ') : '';
+        document.getElementById('career_applicationEmail').value = item.applicationEmail || '';
+        document.getElementById('career_externalUrl').value = item.externalApplyUrl || '';
+        document.getElementById('career_deadline').value = item.applicationDeadline || '';
+        document.getElementById('career_openings').value = item.numberOfOpenings || 0;
+        document.getElementById('career_featured').checked = !!item.featured;
+        document.getElementById('career_urgent').checked = !!item.urgentHiring;
+        document.getElementById('career_published').checked = item.published !== false;
+        document.getElementById('career_displayOrder').value = item.displayOrder || 0;
+      }
+
+      function clearCareerForm() {
+        ['career_jobTitle','career_jobCode','career_country','career_state','career_city','career_officeLocation',
+         'career_salary','career_currency','career_experienceRequired','career_educationRequired',
+         'career_shortDescription','career_description','career_responsibilities','career_requirements',
+         'career_preferredQualifications','career_requiredSkills','career_technologies','career_applicationEmail',
+         'career_externalUrl','career_deadline'].forEach(id => { document.getElementById(id).value = ''; });
+        document.getElementById('career_openings').value = '';
+        document.getElementById('career_displayOrder').value = '';
+        document.getElementById('career_featured').checked = false;
+        document.getElementById('career_urgent').checked = false;
+        document.getElementById('career_published').checked = true;
+        document.getElementById('career_category').selectedIndex = 0;
+        document.getElementById('career_seniority').selectedIndex = 0;
+        document.getElementById('career_employmentType').selectedIndex = 0;
+        document.getElementById('career_workMode').selectedIndex = 0;
+        document.getElementById('career_salaryType').selectedIndex = 0;
+      }
+
+      function syncCareerCategoryOptions(selectedValue) {
+        const selectEl = document.getElementById('career_category');
+        const currentValue = selectedValue ?? selectEl.value;
+        const categories = Object.values(cache.categories || {})
+          .filter(item => item && item.name)
+          .sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
+
+        const options = ['<option value="">Select category</option>'];
+        categories.forEach(item => {
+          options.push(`<option value="${escapeHtml(item.name)}">${escapeHtml(item.name)}</option>`);
+        });
+
+        if (currentValue && !categories.some(item => item.name === currentValue)) {
+          options.push(`<option value="${escapeHtml(currentValue)}">${escapeHtml(currentValue)}</option>`);
+        }
+
+        selectEl.innerHTML = options.join('');
+        if (currentValue) selectEl.value = currentValue;
+      }
+
+      function setCareerEditing(key) {
+        editState.careers = key;
+        const title = document.getElementById('careerFormTitle');
+        const saveBtn = document.getElementById('careerSaveBtn');
+        const cancelBtn = document.getElementById('careerCancelBtn');
+        if (key) {
+          title.textContent = 'Edit Career (Job Posting)';
+          saveBtn.textContent = 'Update Career';
+          cancelBtn.classList.remove('hidden');
+        } else {
+          title.textContent = 'Add Career (Job Posting)';
+          saveBtn.textContent = 'Add Career';
+          cancelBtn.classList.add('hidden');
+        }
+      }
+
+      function editCareer(key) {
+        const item = cache.careers[key];
+        if (!item) return;
+        populateCareerForm(item);
+        setCareerEditing(key);
+        document.getElementById('careerFormTitle').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        renderCareersList();
+      }
+
+      async function deleteCareer(key) {
+        const item = cache.careers[key];
+        if (!confirm('Delete career "' + (item && item.title ? item.title : key) + '"? This cannot be undone.')) return;
+        try {
+          delete cache.careers[key];
+          await authFetch(endpoints['careers'], {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cache.careers),
+          });
+          if (editState.careers === key) {
+            setCareerEditing(null);
+            clearCareerForm();
+          }
+          renderCareersList();
+          setStatus('Career deleted.', 'ok');
+        } catch (error) {
+          setStatus(error.message || 'Failed to delete career', 'err');
+        }
+      }
+
+      function buildCareerCard(key, item) {
+        const meta = [item.category || item.jobCategory, item.employmentType || item.type, item.workMode]
+          .filter(Boolean)
+          .map(v => `<span>${escapeHtml(v)}</span>`)
+          .join('');
+        const row = document.createElement('div');
+        row.className = 'list-item' + (editState.careers === key ? ' editing' : '');
+        row.innerHTML = `
+          <div class="list-card-header">
+            <div class="list-item-title">${escapeHtml(item.title || key)}</div>
+            <span class="badge ${item.published !== false ? 'on' : 'off'}">${item.published !== false ? 'Published' : 'Draft'}</span>
+          </div>
+          <div class="list-item-meta">${meta || '<span>No details set</span>'}</div>
+          <div class="list-card-actions">
+            <button class="btn btn-sm btn-edit" data-edit>Edit</button>
+            <button class="btn btn-sm btn-delete" data-delete>Delete</button>
+          </div>
+        `;
+        row.querySelector('[data-edit]').addEventListener('click', () => editCareer(key));
+        row.querySelector('[data-delete]').addEventListener('click', () => deleteCareer(key));
+        return row;
+      }
+
+      function renderCareersList() {
+        const container = document.getElementById('careersList');
+        const keys = Object.keys(cache.careers || {});
+        if (!keys.length) {
+          container.innerHTML = '<div class="empty-state">No careers yet. Use the form below to add one.</div>';
+          return;
+        }
+        container.innerHTML = '';
+        container.classList.remove('list');
+        container.classList.add('career-groups');
+
+        const categoryOrder = Object.values(cache.categories || {})
+          .filter(item => item && item.name)
+          .sort((a, b) => Number(a.order || 0) - Number(b.order || 0))
+          .map(item => item.name);
+
+        const groups = new Map();
+        keys.forEach(key => {
+          const item = cache.careers[key] || {};
+          const groupName = item.category || item.jobCategory || 'Uncategorized';
+          if (!groups.has(groupName)) groups.set(groupName, []);
+          groups.get(groupName).push(key);
+        });
+
+        const orderedGroupNames = [
+          ...categoryOrder.filter(name => groups.has(name)),
+          ...Array.from(groups.keys()).filter(name => !categoryOrder.includes(name)),
+        ];
+
+        orderedGroupNames.forEach(groupName => {
+          const groupKeys = groups.get(groupName);
+          const section = document.createElement('div');
+          section.className = 'career-group';
+          section.innerHTML = `
+            <div class="career-group-header">
+              <span>${escapeHtml(groupName)}</span>
+              <span class="career-group-count">${groupKeys.length}</span>
+            </div>
+            <div class="list career-group-list"></div>
+          `;
+          const listEl = section.querySelector('.career-group-list');
+          groupKeys.forEach(key => {
+            listEl.appendChild(buildCareerCard(key, cache.careers[key] || {}));
+          });
+          container.appendChild(section);
+        });
+      }
+
+      async function refreshCareersList() {
+        try {
+          const [careersData, categoriesData] = await Promise.all([
+            authFetch(endpoints['careers']),
+            Object.keys(cache.categories || {}).length ? Promise.resolve(cache.categories) : authFetch(endpoints['job-categories']),
+          ]);
+          cache.careers = Array.isArray(careersData) ? {} : Object.assign({}, careersData || {});
+          cache.categories = Array.isArray(categoriesData) ? {} : Object.assign({}, categoriesData || {});
+          renderCareersList();
+        } catch (error) {
+          setStatus(error.message || 'Failed to load careers', 'err');
+        }
+      }
+
+      async function saveCareer() {
         try {
           const title = document.getElementById('career_jobTitle').value.trim();
           if (!title) throw new Error('Job Title is required');
           const jobCode = document.getElementById('career_jobCode').value.trim();
-          const key = slugify(jobCode || title);
+          const key = editState.careers || slugify(jobCode || title);
           const category = document.getElementById('career_category').value;
           const seniority = document.getElementById('career_seniority').value;
           const employmentType = document.getElementById('career_employmentType').value;
@@ -381,10 +993,9 @@
           const published = document.getElementById('career_published').checked;
           const displayOrder = Number(document.getElementById('career_displayOrder').value || 0);
 
-          const data = await authFetch(endpoints['careers']);
-          const careers = Array.isArray(data) ? {} : Object.assign({}, data || {});
+          const existing = editState.careers ? (cache.careers[editState.careers] || {}) : {};
 
-          careers[key] = {
+          cache.careers[key] = Object.assign({}, existing, {
             slug: key,
             title,
             jobCode,
@@ -420,27 +1031,147 @@
             urgentHiring,
             published,
             displayOrder,
-            date: new Date().toISOString(),
-          };
+            date: existing.date || new Date().toISOString(),
+          });
 
           await authFetch(endpoints['careers'], {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(careers),
+            body: JSON.stringify(cache.careers),
           });
 
-          setStatus('Career added successfully.');
+          setStatus(editState.careers ? 'Career updated successfully.' : 'Career added successfully.', 'ok');
+          setCareerEditing(null);
+          clearCareerForm();
+          renderCareersList();
         } catch (error) {
-          setStatus(error.message || 'Failed to add career');
+          setStatus(error.message || 'Failed to save career', 'err');
         }
       }
 
-      async function addCategory() {
+      // ---------- JOB CATEGORIES ----------
+
+      function populateCategoryForm(item) {
+        document.getElementById('cat_name').value = item.name || '';
+        document.getElementById('cat_slug').value = item.slug || '';
+        document.getElementById('cat_slug').dataset.touched = 'true';
+        document.getElementById('cat_description').value = item.description || item.shortDescription || '';
+        document.getElementById('cat_icon').value = item.icon || '';
+        document.getElementById('cat_banner').value = item.bannerImage || '';
+        document.getElementById('cat_order').value = item.order || 0;
+        document.getElementById('cat_status').value = item.status || 'Active';
+        document.getElementById('cat_showCareers').checked = item.showOnCareers !== false;
+      }
+
+      function clearCategoryForm() {
+        document.getElementById('cat_name').value = '';
+        document.getElementById('cat_slug').value = '';
+        document.getElementById('cat_slug').dataset.touched = '';
+        document.getElementById('cat_description').value = '';
+        document.getElementById('cat_icon').value = '';
+        document.getElementById('cat_banner').value = '';
+        document.getElementById('cat_order').value = '';
+        document.getElementById('cat_status').selectedIndex = 0;
+        document.getElementById('cat_showCareers').checked = true;
+      }
+
+      function setCategoryEditing(key) {
+        editState.categories = key;
+        const title = document.getElementById('catFormTitle');
+        const saveBtn = document.getElementById('catSaveBtn');
+        const cancelBtn = document.getElementById('catCancelBtn');
+        if (key) {
+          title.textContent = 'Edit Job Category';
+          saveBtn.textContent = 'Update Job Category';
+          cancelBtn.classList.remove('hidden');
+        } else {
+          title.textContent = 'Add Job Category';
+          saveBtn.textContent = 'Add Job Category';
+          cancelBtn.classList.add('hidden');
+        }
+      }
+
+      function editCategory(key) {
+        const item = cache.categories[key];
+        if (!item) return;
+        populateCategoryForm(item);
+        setCategoryEditing(key);
+        document.getElementById('catFormTitle').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        renderCategoriesList();
+      }
+
+      async function deleteCategory(key) {
+        const item = cache.categories[key];
+        if (!confirm('Delete category "' + (item && item.name ? item.name : key) + '"? This cannot be undone.')) return;
+        try {
+          delete cache.categories[key];
+          syncCareerCategoryOptions();
+          await authFetch(endpoints['job-categories'], {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cache.categories),
+          });
+          if (editState.categories === key) {
+            setCategoryEditing(null);
+            clearCategoryForm();
+          }
+          renderCategoriesList();
+          setStatus('Job category deleted.', 'ok');
+        } catch (error) {
+          setStatus(error.message || 'Failed to delete category', 'err');
+        }
+      }
+
+      function renderCategoriesList() {
+        const container = document.getElementById('categoriesList');
+        const keys = Object.keys(cache.categories || {});
+        if (!keys.length) {
+          container.innerHTML = '<div class="empty-state">No job categories yet. Use the form below to add one.</div>';
+          return;
+        }
+        container.innerHTML = '';
+        keys.forEach(key => {
+          const item = cache.categories[key] || {};
+          const meta = [`/${item.slug || key}`, item.showOnCareers === false ? 'Hidden from Careers page' : 'Shown on Careers page']
+            .filter(Boolean)
+            .map(v => `<span>${escapeHtml(v)}</span>`)
+            .join('');
+          const row = document.createElement('div');
+          row.className = 'list-item' + (editState.categories === key ? ' editing' : '');
+          row.innerHTML = `
+            <div class="list-card-header">
+              <div class="list-item-title">${escapeHtml(item.name || key)}</div>
+              <span class="badge ${item.status !== 'Inactive' ? 'on' : 'off'}">${escapeHtml(item.status || 'Active')}</span>
+            </div>
+            <div class="list-item-meta">${meta}</div>
+            <div class="list-card-actions">
+              <button class="btn btn-sm" data-edit>Edit</button>
+              <button class="btn btn-sm btn-danger" data-delete>Delete</button>
+            </div>
+          `;
+          row.querySelector('[data-edit]').addEventListener('click', () => editCategory(key));
+          row.querySelector('[data-delete]').addEventListener('click', () => deleteCategory(key));
+          container.appendChild(row);
+        });
+      }
+
+      async function refreshCategoriesList() {
+        try {
+          const data = await authFetch(endpoints['job-categories']);
+          cache.categories = Array.isArray(data) ? {} : Object.assign({}, data || {});
+          syncCareerCategoryOptions();
+          renderCategoriesList();
+        } catch (error) {
+          setStatus(error.message || 'Failed to load job categories', 'err');
+        }
+      }
+
+      async function saveCategory() {
         try {
           const name = document.getElementById('cat_name').value.trim();
           if (!name) throw new Error('Category Name is required');
           const slugInput = document.getElementById('cat_slug').value.trim();
-          const slug = slugInput || slugify(name);
+          const key = editState.categories || slugInput || slugify(name);
           const description = document.getElementById('cat_description').value.trim();
           const icon = document.getElementById('cat_icon').value.trim();
           const bannerImage = document.getElementById('cat_banner').value.trim();
@@ -448,12 +1179,9 @@
           const status = document.getElementById('cat_status').value;
           const showOnCareers = document.getElementById('cat_showCareers').checked;
 
-          const data = await authFetch(endpoints['job-categories']);
-          const categories = Array.isArray(data) ? {} : Object.assign({}, data || {});
-
-          categories[slug] = {
-            id: slug,
-            slug,
+          cache.categories[key] = {
+            id: key,
+            slug: key,
             name,
             description,
             shortDescription: description,
@@ -465,27 +1193,34 @@
             published: status === 'Active' && showOnCareers,
           };
 
+          syncCareerCategoryOptions(name);
+
           await authFetch(endpoints['job-categories'], {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(categories),
+            body: JSON.stringify(cache.categories),
           });
 
-          setStatus('Job category added successfully.');
+          setStatus(editState.categories ? 'Job category updated successfully.' : 'Job category added successfully.', 'ok');
+          setCategoryEditing(null);
+          clearCategoryForm();
+          renderCategoriesList();
         } catch (error) {
-          setStatus(error.message || 'Failed to add category');
+          setStatus(error.message || 'Failed to save category', 'err');
         }
       }
+
+      // ---------- CAREER PAGE SETTINGS ----------
 
       function createBenefitItem(data = {}) {
         const item = document.createElement('div');
         item.className = 'repeat-item grid';
         item.innerHTML = `
           <div class="cols-3">
-            <div><p class="field-label">Icon</p><input data-field="icon" value="${data.icon || ''}" /></div>
-            <div><p class="field-label">Benefit Title</p><input data-field="title" value="${data.title || ''}" /></div>
+            <div><p class="field-label">Icon</p><input data-field="icon" value="${escapeHtml(data.icon || '')}" /></div>
+            <div><p class="field-label">Benefit Title</p><input data-field="title" value="${escapeHtml(data.title || '')}" /></div>
             <div><p class="field-label">Display Order</p><input data-field="order" type="number" value="${data.order || 0}" /></div>
-            <div style="grid-column:1/-1;"><p class="field-label">Benefit Description</p><textarea data-field="description">${data.description || ''}</textarea></div>
+            <div style="grid-column:1/-1;"><p class="field-label">Benefit Description</p><textarea data-field="description">${escapeHtml(data.description || '')}</textarea></div>
             <div><p class="field-label">Status</p><select data-field="status"><option ${data.status === 'Inactive' ? '' : 'selected'}>Active</option><option ${data.status === 'Inactive' ? 'selected' : ''}>Inactive</option></select></div>
           </div>
           <div class="row"><button class="btn" data-remove>Remove Benefit</button></div>
@@ -500,9 +1235,9 @@
         item.innerHTML = `
           <div class="cols-3">
             <div><p class="field-label">Step Number</p><input data-field="stepNumber" type="number" value="${data.stepNumber || 1}" /></div>
-            <div><p class="field-label">Step Title</p><input data-field="title" value="${data.title || ''}" /></div>
-            <div><p class="field-label">Icon</p><input data-field="icon" value="${data.icon || ''}" /></div>
-            <div style="grid-column:1/-1;"><p class="field-label">Step Description</p><textarea data-field="description">${data.description || ''}</textarea></div>
+            <div><p class="field-label">Step Title</p><input data-field="title" value="${escapeHtml(data.title || '')}" /></div>
+            <div><p class="field-label">Icon</p><input data-field="icon" value="${escapeHtml(data.icon || '')}" /></div>
+            <div style="grid-column:1/-1;"><p class="field-label">Step Description</p><textarea data-field="description">${escapeHtml(data.description || '')}</textarea></div>
             <div><p class="field-label">Status</p><select data-field="status"><option ${data.status === 'Inactive' ? '' : 'selected'}>Active</option><option ${data.status === 'Inactive' ? 'selected' : ''}>Inactive</option></select></div>
           </div>
           <div class="row"><button class="btn" data-remove>Remove Step</button></div>
@@ -575,9 +1310,9 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
           });
-          setStatus('Career page settings saved.');
+          setStatus('Career page settings saved.', 'ok');
         } catch (error) {
-          setStatus(error.message || 'Failed to save settings');
+          setStatus(error.message || 'Failed to save settings', 'err');
         }
       }
 
@@ -622,26 +1357,157 @@
           (data.applicationProcess || []).forEach(item => appStepsList.appendChild(createStepItem(item)));
           if (!appStepsList.children.length) appStepsList.appendChild(createStepItem());
 
-          setStatus('Career page settings loaded.');
+          setStatus('Career page settings loaded.', 'ok');
         } catch (error) {
-          setStatus(error.message || 'Failed to load settings');
+          setStatus(error.message || 'Failed to load settings', 'err');
         }
       }
 
-      async function addGuide() {
+      // ---------- DOWNLOADABLE GUIDES ----------
+
+      function populateGuideForm(item) {
+        document.getElementById('guide_title').value = item.title || '';
+        document.getElementById('guide_slug').value = item.slug || '';
+        document.getElementById('guide_slug').dataset.touched = 'true';
+        document.getElementById('guide_description').value = item.description || '';
+        document.getElementById('guide_category').value = item.category || '';
+        document.getElementById('guide_type').value = item.guideType || '';
+        document.getElementById('guide_thumbnail').value = item.thumbnailImage || '';
+        document.getElementById('guide_cover').value = item.coverImage || '';
+        document.getElementById('guide_file').value = item.pdfFile || '';
+        document.getElementById('guide_buttonText').value = item.buttonText || 'Download';
+        document.getElementById('guide_externalUrl').value = item.externalDownloadUrl || '';
+        document.getElementById('guide_featured').checked = !!item.featured;
+        document.getElementById('guide_order').value = item.order || 1;
+        document.getElementById('guide_status').value = item.status || 'Active';
+        document.getElementById('guide_trackDownloads').checked = item.trackDownloads !== false;
+        document.getElementById('guide_downloadCount').value = item.downloadCount || 0;
+        const seo = item.seo || {};
+        document.getElementById('guide_seoTitle').value = seo.title || '';
+        document.getElementById('guide_seoDescription').value = seo.description || '';
+        document.getElementById('guide_seoKeywords').value = Array.isArray(seo.keywords) ? seo.keywords.join(', ') : '';
+      }
+
+      function clearGuideForm() {
+        ['guide_title','guide_slug','guide_description','guide_thumbnail','guide_cover','guide_file',
+         'guide_externalUrl','guide_seoTitle','guide_seoDescription','guide_seoKeywords'].forEach(id => {
+          document.getElementById(id).value = '';
+        });
+        document.getElementById('guide_slug').dataset.touched = '';
+        document.getElementById('guide_buttonText').value = 'Download';
+        document.getElementById('guide_featured').checked = false;
+        document.getElementById('guide_order').value = 1;
+        document.getElementById('guide_status').selectedIndex = 0;
+        document.getElementById('guide_trackDownloads').checked = true;
+        document.getElementById('guide_downloadCount').value = 0;
+        document.getElementById('guide_category').selectedIndex = 0;
+        document.getElementById('guide_type').selectedIndex = 0;
+      }
+
+      function setGuideEditing(key) {
+        editState.guides = key;
+        const title = document.getElementById('guideFormTitle');
+        const saveBtn = document.getElementById('guideSaveBtn');
+        const cancelBtn = document.getElementById('guideCancelBtn');
+        if (key) {
+          title.textContent = 'Edit Downloadable Guide';
+          saveBtn.textContent = 'Update Guide';
+          cancelBtn.classList.remove('hidden');
+        } else {
+          title.textContent = 'Add Downloadable Guide';
+          saveBtn.textContent = 'Add Guide';
+          cancelBtn.classList.add('hidden');
+        }
+      }
+
+      function editGuide(key) {
+        const item = cache.guides[key];
+        if (!item) return;
+        populateGuideForm(item);
+        setGuideEditing(key);
+        document.getElementById('guideFormTitle').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        renderGuidesList();
+      }
+
+      async function deleteGuide(key) {
+        const item = cache.guides[key];
+        if (!confirm('Delete guide "' + (item && item.title ? item.title : key) + '"? This cannot be undone.')) return;
+        try {
+          delete cache.guides[key];
+          await authFetch(endpoints['downloadable-guides'], {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cache.guides),
+          });
+          if (editState.guides === key) {
+            setGuideEditing(null);
+            clearGuideForm();
+          }
+          renderGuidesList();
+          document.getElementById('guidesEditor').value = JSON.stringify(cache.guides, null, 2);
+          setStatus('Guide deleted.', 'ok');
+        } catch (error) {
+          setStatus(error.message || 'Failed to delete guide', 'err');
+        }
+      }
+
+      function renderGuidesList() {
+        const container = document.getElementById('guidesList');
+        const keys = Object.keys(cache.guides || {});
+        if (!keys.length) {
+          container.innerHTML = '<div class="empty-state">No guides yet. Use the form below to add one.</div>';
+          return;
+        }
+        container.innerHTML = '';
+        keys.forEach(key => {
+          const item = cache.guides[key] || {};
+          const meta = [item.category, item.guideType, item.featured ? 'Featured' : '']
+            .filter(Boolean)
+            .map(v => `<span>${escapeHtml(v)}</span>`)
+            .join('');
+          const row = document.createElement('div');
+          row.className = 'list-item' + (editState.guides === key ? ' editing' : '');
+          row.innerHTML = `
+            <div class="list-card-header">
+              <div class="list-item-title">${escapeHtml(item.title || key)}</div>
+              <span class="badge ${item.status !== 'Inactive' ? 'on' : 'off'}">${escapeHtml(item.status || 'Active')}</span>
+            </div>
+            <div class="list-item-meta">${meta || '<span>No details set</span>'}</div>
+            <div class="list-card-actions">
+              <button class="btn btn-sm" data-edit>Edit</button>
+              <button class="btn btn-sm btn-danger" data-delete>Delete</button>
+            </div>
+          `;
+          row.querySelector('[data-edit]').addEventListener('click', () => editGuide(key));
+          row.querySelector('[data-delete]').addEventListener('click', () => deleteGuide(key));
+          container.appendChild(row);
+        });
+      }
+
+      async function refreshGuidesList() {
+        try {
+          const data = await authFetch(endpoints['downloadable-guides']);
+          cache.guides = Array.isArray(data) ? {} : Object.assign({}, data || {});
+          renderGuidesList();
+          document.getElementById('guidesEditor').value = JSON.stringify(cache.guides, null, 2);
+        } catch (error) {
+          setStatus(error.message || 'Failed to load guides', 'err');
+        }
+      }
+
+      async function saveGuide() {
         try {
           const title = document.getElementById('guide_title').value.trim();
           if (!title) throw new Error('Guide Title is required');
           const slugInput = document.getElementById('guide_slug').value.trim();
-          const slug = slugInput || slugify(title);
+          const key = editState.guides || slugInput || slugify(title);
           const description = document.getElementById('guide_description').value.trim();
           if (!description) throw new Error('Short Description is required');
 
-          const data = await authFetch(endpoints['downloadable-guides']);
-          const guides = Array.isArray(data) ? {} : Object.assign({}, data || {});
+          const existing = editState.guides ? (cache.guides[editState.guides] || {}) : {};
 
-          guides[slug] = {
-            slug,
+          cache.guides[key] = Object.assign({}, existing, {
+            slug: key,
             title,
             description,
             category: document.getElementById('guide_category').value,
@@ -663,30 +1529,35 @@
               keywords: splitTags(document.getElementById('guide_seoKeywords').value),
             },
             icon: document.getElementById('guide_thumbnail').value.trim(),
-            date: new Date().toISOString(),
-          };
+            date: existing.date || new Date().toISOString(),
+          });
 
-          document.getElementById('guidesEditor').value = JSON.stringify(guides, null, 2);
+          document.getElementById('guidesEditor').value = JSON.stringify(cache.guides, null, 2);
 
           await authFetch(endpoints['downloadable-guides'], {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(guides),
+            body: JSON.stringify(cache.guides),
           });
 
-          setStatus('Guide added successfully.');
+          setStatus(editState.guides ? 'Guide updated successfully.' : 'Guide added successfully.', 'ok');
+          setGuideEditing(null);
+          clearGuideForm();
+          renderGuidesList();
         } catch (error) {
-          setStatus(error.message || 'Failed to add guide');
+          setStatus(error.message || 'Failed to save guide', 'err');
         }
       }
 
       async function loadGuidesJson() {
         try {
           const data = await authFetch(endpoints['downloadable-guides']);
-          document.getElementById('guidesEditor').value = JSON.stringify(data, null, 2);
-          setStatus('Guides loaded.');
+          cache.guides = Array.isArray(data) ? {} : Object.assign({}, data || {});
+          document.getElementById('guidesEditor').value = JSON.stringify(cache.guides, null, 2);
+          renderGuidesList();
+          setStatus('Guides loaded.', 'ok');
         } catch (error) {
-          setStatus(error.message || 'Failed to load guides');
+          setStatus(error.message || 'Failed to load guides', 'err');
         }
       }
 
@@ -698,19 +1569,42 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(parsed),
           });
-          setStatus('Guides JSON saved.');
+          cache.guides = parsed;
+          renderGuidesList();
+          setStatus('Guides JSON saved.', 'ok');
         } catch (error) {
-          setStatus(error.message || 'Failed to save guides JSON');
+          setStatus(error.message || 'Failed to save guides JSON', 'err');
         }
       }
 
-      document.getElementById('careerAddBtn').addEventListener('click', addCareer);
-      document.getElementById('catAddBtn').addEventListener('click', addCategory);
+      // ---------- wiring ----------
+
+      document.getElementById('careerSaveBtn').addEventListener('click', saveCareer);
+      document.getElementById('careerCancelBtn').addEventListener('click', () => {
+        setCareerEditing(null);
+        clearCareerForm();
+        renderCareersList();
+      });
+
+      document.getElementById('catSaveBtn').addEventListener('click', saveCategory);
+      document.getElementById('catCancelBtn').addEventListener('click', () => {
+        setCategoryEditing(null);
+        clearCategoryForm();
+        renderCategoriesList();
+      });
+
       document.getElementById('saveSettingsBtn').addEventListener('click', saveCareerSettings);
       document.getElementById('loadSettingsBtn').addEventListener('click', loadCareerSettings);
-      document.getElementById('guideAddBtn').addEventListener('click', addGuide);
+
+      document.getElementById('guideSaveBtn').addEventListener('click', saveGuide);
+      document.getElementById('guideCancelBtn').addEventListener('click', () => {
+        setGuideEditing(null);
+        clearGuideForm();
+        renderGuidesList();
+      });
       document.getElementById('loadGuidesBtn').addEventListener('click', loadGuidesJson);
       document.getElementById('saveGuidesBtn').addEventListener('click', saveGuidesJson);
+
       document.getElementById('addBenefitBtn').addEventListener('click', () => {
         document.getElementById('benefitsList').appendChild(createBenefitItem());
       });
@@ -738,6 +1632,7 @@
       }
 
       activateTab('careers');
+      refreshCategoriesList();
       document.getElementById('benefitsList').appendChild(createBenefitItem());
       document.getElementById('appStepsList').appendChild(createStepItem());
     </script>

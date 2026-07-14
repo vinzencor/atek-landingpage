@@ -37,20 +37,48 @@ export function organizeJobsByCategories(
   categories: JobCategory[],
   jobs: CareerJob[]
 ): JobCategoryWithJobs[] {
+  const normalize = (value: string) =>
+    value
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+
   return categories.map(category => {
+    const categoryName = String(category.name || '').trim();
+    const categorySlug = String(category.slug || '').trim();
+    const categoryId = String(category.id || '').trim();
+    const acceptableCategoryValues = new Set(
+      [categoryName, categorySlug, categoryId]
+        .filter(Boolean)
+        .flatMap(value => [value, normalize(value)]),
+    );
+
     // Find jobs that belong to this category
     let categoryJobs: CareerJob[] = [];
 
     if (category.jobs && category.jobs.length > 0) {
       // Use the jobs specified in the category's multi-reference field
       categoryJobs = jobs.filter(job =>
-        category.jobs!.includes(job.slug || job.title.toLowerCase().replace(/\s+/g, '-'))
+        category.jobs!.includes(job.slug || normalize(job.title || ''))
       );
     } else {
-      // Match by jobCategory field (new) or department field (backward compatibility)
-      categoryJobs = jobs.filter(job =>
-        (job as any).jobCategory === category.name || job.department === category.name
-      );
+      // Match by jobCategory/category fields or legacy department with flexible values.
+      categoryJobs = jobs.filter(job => {
+        const jobValueCandidates = [
+          (job as any).jobCategory,
+          (job as any).category,
+          job.department,
+        ]
+          .filter(Boolean)
+          .flatMap(value => {
+            const raw = String(value).trim();
+            return [raw, normalize(raw)];
+          });
+
+        return jobValueCandidates.some(value => acceptableCategoryValues.has(value));
+      });
     }
 
     return {

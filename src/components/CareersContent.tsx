@@ -18,6 +18,7 @@ interface JobCardProps {
   animationDelay: string;
   renderFullDescription: (description: string) => React.ReactNode;
   getTruncatedDescription: (description: string) => string;
+  onViewDetails: (role: CareerJob) => void;
 }
 
 const JobCard: React.FC<JobCardProps> = ({
@@ -27,12 +28,14 @@ const JobCard: React.FC<JobCardProps> = ({
   onApplyClick,
   animationDelay,
   renderFullDescription,
-  getTruncatedDescription
+  getTruncatedDescription,
+  onViewDetails
 }) => {
   return (
     <div
-      className="animate-on-scroll bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-gray-100"
+      className="animate-on-scroll bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-gray-100 cursor-pointer"
       style={{ animationDelay }}
+      onClick={() => onViewDetails(role)}
     >
       <div className="flex flex-col gap-4">
         {/* Job Header - Always Visible */}
@@ -41,7 +44,10 @@ const JobCard: React.FC<JobCardProps> = ({
             <div className="flex items-center justify-between">
               <h4 className="font-semibold text-gray-900 mb-2">{role.title}</h4>
               <button
-                onClick={() => onToggleExpansion(role.title)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onToggleExpansion(role.title);
+                }}
                 className="text-gray-500 hover:text-gray-700 transition-colors duration-200 ml-2"
                 aria-label={isExpanded ? "Collapse job details" : "Expand job details"}
               >
@@ -69,7 +75,10 @@ const JobCard: React.FC<JobCardProps> = ({
             {/* Apply Button in Expanded View */}
             <div className="pt-2">
               <button
-                onClick={() => onApplyClick(role.title)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onApplyClick(role.title);
+                }}
                 className="w-full bg-primary-600 text-white px-4 py-3 rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium text-sm"
               >
                 Apply for this Position
@@ -82,7 +91,19 @@ const JobCard: React.FC<JobCardProps> = ({
         {!isExpanded && (
           <div className="flex justify-end">
             <button
-              onClick={() => onApplyClick(role.title)}
+              onClick={(event) => {
+                event.stopPropagation();
+                onViewDetails(role);
+              }}
+              className="bg-white text-primary-700 px-4 py-2 rounded-lg border border-primary-300 hover:bg-primary-50 transition-colors duration-200 font-medium text-sm whitespace-nowrap mr-2"
+            >
+              View Details
+            </button>
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                onApplyClick(role.title);
+              }}
               className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium text-sm whitespace-nowrap"
             >
               Apply Now
@@ -97,7 +118,9 @@ const JobCard: React.FC<JobCardProps> = ({
 const CareersContent = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [isJobDetailsModalOpen, setIsJobDetailsModalOpen] = React.useState(false);
   const [selectedJob, setSelectedJob] = React.useState('');
+  const [selectedJobDetails, setSelectedJobDetails] = React.useState<CareerJob | null>(null);
   const [expandedJob, setExpandedJob] = React.useState<string | null>(null);
 
   const [cmsJobs, setCmsJobs] = useState<CareerJob[]>([]);
@@ -185,6 +208,16 @@ const CareersContent = () => {
     setSelectedJob('');
   };
 
+  const openJobDetailsModal = (job: CareerJob) => {
+    setSelectedJobDetails(job);
+    setIsJobDetailsModalOpen(true);
+  };
+
+  const closeJobDetailsModal = () => {
+    setIsJobDetailsModalOpen(false);
+    setSelectedJobDetails(null);
+  };
+
   // Handle job expansion (accordion-style: only one card can be expanded at a time)
   const toggleJobExpansion = (jobTitle: string) => {
     if (expandedJob === jobTitle) {
@@ -248,15 +281,15 @@ const CareersContent = () => {
     const form = e.currentTarget;
     const formData = new FormData(form);
 
-    // Add form-name for Netlify
-    formData.append('form-name', 'job-application');
-
-    // Submit to Netlify (for file uploads, we need to use FormData directly)
-    fetch('/', {
+    fetch('/api/job-applications', {
       method: 'POST',
       body: formData
     })
-    .then(() => {
+    .then(async (response) => {
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || 'Failed to submit application');
+      }
       alert('Application submitted successfully! We will review your application and get back to you soon.');
       closeModal();
     })
@@ -408,28 +441,33 @@ const CareersContent = () => {
             </div>
           ) : (
             organizedJobs.map((category, categoryIndex) => {
-              if (category.jobListings.length === 0) return null;
-
               return (
                 <div key={category.id} className="mb-12">
                   <h3 className="animate-on-scroll text-xl font-bold text-gray-900 mb-6">
                     {category.name}
                   </h3>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
-                    {category.jobListings.map((role, index) => (
-                      <JobCard
-                        key={role.title}
-                        role={role}
-                        isExpanded={isJobExpanded(role.title)}
-                        onToggleExpansion={toggleJobExpansion}
-                        onApplyClick={openModal}
-                        animationDelay={`${index * 0.05}s`}
-                        renderFullDescription={renderFullDescription}
-                        getTruncatedDescription={getTruncatedDescription}
-                      />
-                    ))}
-                  </div>
+                  {category.jobListings.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+                      {category.jobListings.map((role, index) => (
+                        <JobCard
+                          key={role.title}
+                          role={role}
+                          isExpanded={isJobExpanded(role.title)}
+                          onToggleExpansion={toggleJobExpansion}
+                          onApplyClick={openModal}
+                          animationDelay={`${index * 0.05}s`}
+                          renderFullDescription={renderFullDescription}
+                          getTruncatedDescription={getTruncatedDescription}
+                          onViewDetails={openJobDetailsModal}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                      No open positions in this category right now.
+                    </div>
+                  )}
                 </div>
               );
             })
@@ -529,6 +567,177 @@ const CareersContent = () => {
       </section>
 
       {/* Application Modal */}
+      {isJobDetailsModalOpen && selectedJobDetails && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900">{selectedJobDetails.title}</h3>
+              <button
+                onClick={closeJobDetailsModal}
+                className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              {(() => {
+                const job = selectedJobDetails as any;
+                const location = [job.city, job.state, job.country].filter(Boolean).join(', ') || job.officeLocation || job.location || '';
+                const salaryParts = [job.salary, job.salaryType, job.currency].filter(Boolean).join(' ');
+                const skills: string[] = Array.isArray(job.requiredSkills) ? job.requiredSkills : (Array.isArray(job.skills) ? job.skills : []);
+                const technologies: string[] = Array.isArray(job.technologies) ? job.technologies : [];
+                return (
+                  <>
+                    <div className="flex flex-wrap gap-2">
+                      {(job.category || job.jobCategory) && (
+                        <span className="text-xs bg-primary-100 text-primary-700 px-2 py-1 rounded">{job.category || job.jobCategory}</span>
+                      )}
+                      {job.seniorityLevel && (
+                        <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">{job.seniorityLevel}</span>
+                      )}
+                      {(job.employmentType || job.type) && (
+                        <span className="text-xs bg-secondary-100 text-secondary-700 px-2 py-1 rounded">{job.employmentType || job.type}</span>
+                      )}
+                      {job.workMode && (
+                        <span className="text-xs bg-secondary-100 text-secondary-700 px-2 py-1 rounded">{job.workMode}</span>
+                      )}
+                      {location && (
+                        <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">{location}</span>
+                      )}
+                      {(job.experienceRequired || job.experience) && (
+                        <span className="text-xs bg-primary-100 text-primary-700 px-2 py-1 rounded">{job.experienceRequired || job.experience}</span>
+                      )}
+                      {job.featured && (
+                        <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-medium">Featured</span>
+                      )}
+                      {job.urgentHiring && (
+                        <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded font-medium">Urgent Hiring</span>
+                      )}
+                    </div>
+
+                    {(salaryParts || job.educationRequired || job.numberOfOpenings) && (
+                      <div className="grid sm:grid-cols-3 gap-3 bg-gray-50 rounded-lg p-4 text-sm">
+                        {salaryParts && (
+                          <div>
+                            <div className="text-gray-400 text-xs uppercase font-semibold mb-1">Salary</div>
+                            <div className="text-gray-800 font-medium">{salaryParts}</div>
+                          </div>
+                        )}
+                        {job.educationRequired && (
+                          <div>
+                            <div className="text-gray-400 text-xs uppercase font-semibold mb-1">Education</div>
+                            <div className="text-gray-800 font-medium">{job.educationRequired}</div>
+                          </div>
+                        )}
+                        {job.numberOfOpenings ? (
+                          <div>
+                            <div className="text-gray-400 text-xs uppercase font-semibold mb-1">Openings</div>
+                            <div className="text-gray-800 font-medium">{job.numberOfOpenings}</div>
+                          </div>
+                        ) : null}
+                      </div>
+                    )}
+
+                    {job.shortDescription && (
+                      <div>{renderFullDescription(job.shortDescription)}</div>
+                    )}
+
+                    {job.description && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-1">Job Description</h4>
+                        {renderFullDescription(job.description)}
+                      </div>
+                    )}
+
+                    {job.responsibilities && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-1">Responsibilities</h4>
+                        {renderFullDescription(job.responsibilities)}
+                      </div>
+                    )}
+
+                    {job.requirements && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-1">Requirements</h4>
+                        {renderFullDescription(job.requirements)}
+                      </div>
+                    )}
+
+                    {job.preferredQualifications && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-1">Preferred Qualifications</h4>
+                        {renderFullDescription(job.preferredQualifications)}
+                      </div>
+                    )}
+
+                    {(skills.length > 0 || technologies.length > 0) && (
+                      <div className="space-y-2">
+                        {skills.length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-semibold text-gray-900 mb-1">Required Skills</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {skills.map((skill: string) => (
+                                <span key={skill} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">{skill}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {technologies.length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-semibold text-gray-900 mb-1">Technologies</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {technologies.map((tech: string) => (
+                                <span key={tech} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">{tech}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {(job.applicationDeadline || job.applicationEmail) && (
+                      <div className="text-sm text-gray-500 space-y-1">
+                        {job.applicationDeadline && (
+                          <div>Application Deadline: <span className="text-gray-700 font-medium">{job.applicationDeadline}</span></div>
+                        )}
+                        {job.applicationEmail && (
+                          <div>Contact: <span className="text-gray-700 font-medium">{job.applicationEmail}</span></div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="pt-2">
+                      {job.externalApplyUrl ? (
+                        <a
+                          href={job.externalApplyUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block bg-primary-600 text-white px-5 py-3 rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium"
+                        >
+                          Apply for this Position
+                        </a>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setSelectedJob(selectedJobDetails.title);
+                            setIsModalOpen(true);
+                            closeJobDetailsModal();
+                          }}
+                          className="bg-primary-600 text-white px-5 py-3 rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium"
+                        >
+                          Apply for this Position
+                        </button>
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
+
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">

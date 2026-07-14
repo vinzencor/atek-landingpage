@@ -1,8 +1,16 @@
 import { initializeApp, cert, getApps, type ServiceAccount } from 'firebase-admin/app';
 import { getDatabase } from 'firebase-admin/database';
 
+function readFirebaseDatabaseUrl() {
+  return (typeof process !== 'undefined' && process.env?.FIREBASE_DATABASE_URL) || import.meta.env.FIREBASE_DATABASE_URL || '';
+}
+
+function readFirebaseServiceAccountJson() {
+  return (typeof process !== 'undefined' && process.env?.FIREBASE_SERVICE_ACCOUNT_JSON) || import.meta.env.FIREBASE_SERVICE_ACCOUNT_JSON || '';
+}
+
 function parseServiceAccount(): ServiceAccount | null {
-  const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  const raw = readFirebaseServiceAccountJson();
   if (!raw) return null;
 
   try {
@@ -18,11 +26,11 @@ function parseServiceAccount(): ServiceAccount | null {
 }
 
 export function isFirebaseAdminConfigured() {
-  return Boolean(process.env.FIREBASE_DATABASE_URL && parseServiceAccount());
+  return Boolean(readFirebaseDatabaseUrl() && parseServiceAccount());
 }
 
 export function getFirebaseDb() {
-  const databaseURL = process.env.FIREBASE_DATABASE_URL;
+  const databaseURL = readFirebaseDatabaseUrl();
   const serviceAccount = parseServiceAccount();
 
   if (!databaseURL || !serviceAccount) {
