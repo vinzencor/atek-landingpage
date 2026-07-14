@@ -2,12 +2,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "astro",
-  "redirects": [
-    {
-      "source": "/admin",
-      "destination": "/admin/index.html"
-    }
-  ],
   "headers": [
     {
       "source": "/contact",
