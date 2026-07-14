@@ -1,0 +1,20 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import ProductsContent from '../components/ProductsContent.tsx';
+---
+
+<Layout
+  title="Products - ATEK IT | Product Portfolio"
+  description="ATEK IT product portfolio: Pay Pilot, MedLink, Flavour DB, LexIntel, LexIntel Supreme, MyBotique. Industry platforms for legal, healthcare, foodtech and e-commerce."
+  keywords="Pay Pilot, MedLink, Flavour DB, LexIntel, LexIntel Supreme, MyBotique, ATEK IT, product portfolio, SaaS"
+>
+  <Header />
+
+  <main>
+    <ProductsContent client:load />
+  </main>
+
+  <Footer />
+</Layout>

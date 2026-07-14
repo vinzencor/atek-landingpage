@@ -1,0 +1,13 @@
+# Force HTTPS
+http://atektechnologies.in/* https://atektechnologies.in/:splat 301!
+http://www.atektechnologies.in/* https://www.atektechnologies.in/:splat 301!
+
+# Redirect www to non-www (optional - uncomment if you want this)
+# https://www.atektechnologies.in/* https://atektechnologies.in/:splat 301!
+
+# Admin routes
+/admin/* /admin/index.html 200
+
+# SPA fallback for 404
+/* /index.html 200
+

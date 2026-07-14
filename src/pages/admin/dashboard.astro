@@ -1,0 +1,745 @@
+---
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ATEK CMS Dashboard</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Inter, system-ui, sans-serif;
+        background: #ffffff;
+        color: #0f172a;
+      }
+      .layout {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 16px;
+      }
+      .row { display: flex; gap: 8px; flex-wrap: wrap; }
+      .grid { display: grid; gap: 12px; }
+      .cols-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .cols-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+      .hidden { display: none; }
+      .tab.active { background: #0284c7; color: #fff; border-color: #0284c7; }
+      .tab {
+        border: 1px solid #cbd5e1;
+        background: #f8fafc;
+        color: #0f172a;
+      }
+      .btn {
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-weight: 600;
+        cursor: pointer;
+        background: #f8fafc;
+      }
+      .btn-primary { background: #0284c7; color: #ffffff; border-color: #0284c7; }
+      .btn-success { background: #059669; color: #ffffff; border-color: #059669; }
+      .btn-danger { background: #dc2626; color: #ffffff; border-color: #dc2626; }
+      .subhead { margin: 6px 0; font-size: 14px; color: #0f172a; font-weight: 700; }
+      .field-label { font-size: 12px; color: #475569; margin: 0 0 6px; font-weight: 600; }
+      input, textarea, select {
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #0f172a;
+        padding: 10px;
+        font: inherit;
+      }
+      textarea { min-height: 110px; }
+      textarea.json { min-height: 300px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .status { margin-top: 10px; color: #b45309; min-height: 20px; font-size: 14px; }
+      .repeat-item {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 12px;
+        background: #f8fafc;
+      }
+      @media (max-width: 900px) {
+        .cols-2, .cols-3 { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="layout grid">
+      <section class="card grid">
+        <div class="row" style="justify-content: space-between; align-items: center;">
+          <h1 style="margin:0;">ATEK CMS Dashboard</h1>
+          <button id="logoutBtn" class="btn btn-danger">Logout</button>
+        </div>
+
+        <div class="row" id="tabs">
+          <button class="btn tab active" data-key="careers">Careers</button>
+          <button class="btn tab" data-key="job-categories">Job Categories</button>
+          <button class="btn tab" data-key="career-page-settings">Career Page Settings</button>
+          <button class="btn tab" data-key="downloadable-guides">Downloadable Guides</button>
+        </div>
+
+        <div id="careersTab" class="grid card">
+          <h3 style="margin:0;">Add Career (Job Posting)</h3>
+          <div class="subhead">Basic Information</div>
+          <div class="cols-3">
+            <div><p class="field-label">Job Title *</p><input id="career_jobTitle" /></div>
+            <div><p class="field-label">Job Code</p><input id="career_jobCode" /></div>
+            <div><p class="field-label">Category *</p><select id="career_category"><option>Software & Development</option><option>Engineering & Infrastructure</option><option>Experience & Design</option><option>Quality & Data</option></select></div>
+            <div><p class="field-label">Seniority Level *</p><select id="career_seniority"><option>Entry Level</option><option>Junior</option><option>Mid Level</option><option>Senior Level</option><option>Lead</option><option>Manager</option></select></div>
+            <div><p class="field-label">Employment Type *</p><select id="career_employmentType"><option>Full-Time</option><option>Part-Time</option><option>Contract</option><option>Internship</option><option>Temporary</option><option>Freelance</option></select></div>
+          </div>
+          <div class="subhead">Location</div>
+          <div class="cols-3">
+            <div><p class="field-label">Country</p><input id="career_country" /></div>
+            <div><p class="field-label">State</p><input id="career_state" /></div>
+            <div><p class="field-label">City</p><input id="career_city" /></div>
+            <div><p class="field-label">Office Location</p><input id="career_officeLocation" /></div>
+            <div><p class="field-label">Work Mode *</p><select id="career_workMode"><option>On-site</option><option>Remote</option><option>Hybrid</option></select></div>
+          </div>
+          <div class="subhead">Salary</div>
+          <div class="cols-3">
+            <div><p class="field-label">Salary</p><input id="career_salary" /></div>
+            <div><p class="field-label">Salary Type</p><select id="career_salaryType"><option>Annual</option><option>Monthly</option><option>Hourly</option></select></div>
+            <div><p class="field-label">Currency</p><input id="career_currency" /></div>
+          </div>
+          <div class="subhead">Experience & Education</div>
+          <div class="cols-2">
+            <div><p class="field-label">Experience Required</p><input id="career_experienceRequired" /></div>
+            <div><p class="field-label">Education Required</p><input id="career_educationRequired" /></div>
+          </div>
+          <div class="subhead">Job Content</div>
+          <div><p class="field-label">Short Description</p><textarea id="career_shortDescription"></textarea></div>
+          <div><p class="field-label">Job Description</p><textarea id="career_description"></textarea></div>
+          <div><p class="field-label">Responsibilities</p><textarea id="career_responsibilities"></textarea></div>
+          <div><p class="field-label">Requirements</p><textarea id="career_requirements"></textarea></div>
+          <div><p class="field-label">Preferred Qualifications</p><textarea id="career_preferredQualifications"></textarea></div>
+          <div class="subhead">Skills</div>
+          <div class="cols-2">
+            <div><p class="field-label">Required Skills (comma separated)</p><input id="career_requiredSkills" /></div>
+            <div><p class="field-label">Technologies (comma separated)</p><input id="career_technologies" /></div>
+          </div>
+          <div class="subhead">Application Details</div>
+          <div class="cols-3">
+            <div><p class="field-label">Application Email</p><input id="career_applicationEmail" type="email" /></div>
+            <div><p class="field-label">External Apply URL</p><input id="career_externalUrl" type="url" /></div>
+            <div><p class="field-label">Application Deadline</p><input id="career_deadline" type="date" /></div>
+            <div><p class="field-label">Number of Openings</p><input id="career_openings" type="number" min="0" /></div>
+          </div>
+          <div class="subhead">Status</div>
+          <div class="cols-3">
+            <label><input id="career_featured" type="checkbox" /> Featured Job</label>
+            <label><input id="career_urgent" type="checkbox" /> Urgent Hiring</label>
+            <label><input id="career_published" type="checkbox" checked /> Published</label>
+          </div>
+          <div class="cols-3">
+            <div><p class="field-label">Display Order</p><input id="career_displayOrder" type="number" min="0" /></div>
+          </div>
+          <div class="row"><button id="careerAddBtn" class="btn btn-primary">Add Career</button></div>
+        </div>
+
+        <div id="jobCategoriesTab" class="grid card hidden">
+          <h3 style="margin:0;">Add Job Category</h3>
+          <div class="cols-2">
+            <div><p class="field-label">Category Name *</p><input id="cat_name" /></div>
+            <div><p class="field-label">Slug</p><input id="cat_slug" /></div>
+            <div style="grid-column:1/-1;"><p class="field-label">Short Description</p><textarea id="cat_description"></textarea></div>
+            <div><p class="field-label">Category Icon</p><input id="cat_icon" /></div>
+            <div><p class="field-label">Category Banner Image</p><input id="cat_banner" /></div>
+            <div><p class="field-label">Display Order</p><input id="cat_order" type="number" min="0" /></div>
+            <div><p class="field-label">Status *</p><select id="cat_status"><option>Active</option><option>Inactive</option></select></div>
+            <div><label><input id="cat_showCareers" type="checkbox" checked /> Show on Careers Page</label></div>
+          </div>
+          <div class="row"><button id="catAddBtn" class="btn btn-primary">Add Job Category</button></div>
+        </div>
+
+        <div id="careerSettingsTab" class="grid card hidden">
+          <h3 style="margin:0;">Career Page Settings</h3>
+          <div class="subhead">Hero Section</div>
+          <div class="cols-2">
+            <div><p class="field-label">Hero Title *</p><input id="set_heroTitle" /></div>
+            <div><p class="field-label">Hero Banner Image</p><input id="set_heroBannerImage" /></div>
+            <div style="grid-column:1/-1;"><p class="field-label">Hero Subtitle *</p><textarea id="set_heroSubtitle"></textarea></div>
+            <div><p class="field-label">Hero Background Image</p><input id="set_heroBackgroundImage" /></div>
+          </div>
+
+          <div class="subhead">Why Join Section</div>
+          <div class="cols-2">
+            <div><p class="field-label">Section Title *</p><input id="set_whyTitle" /></div>
+            <div style="grid-column:1/-1;"><p class="field-label">Section Description *</p><textarea id="set_whyDescription"></textarea></div>
+          </div>
+
+          <div class="subhead">Benefits</div>
+          <div id="benefitsList" class="grid"></div>
+          <div class="row"><button id="addBenefitBtn" class="btn">Add Benefit</button></div>
+
+          <div class="subhead">Application Process</div>
+          <div id="appStepsList" class="grid"></div>
+          <div class="row"><button id="addStepBtn" class="btn">Add Step</button></div>
+
+          <div class="subhead">Contact Information</div>
+          <div class="cols-2">
+            <div><p class="field-label">Contact Email</p><input id="set_contactEmail" type="email" /></div>
+            <div><p class="field-label">Office Location</p><input id="set_officeLocation" /></div>
+            <div><p class="field-label">Contact Phone</p><input id="set_contactPhone" /></div>
+            <div><p class="field-label">Google Maps Link</p><input id="set_googleMaps" /></div>
+          </div>
+
+          <div class="subhead">Equal Opportunity Statement</div>
+          <div><p class="field-label">Equal Opportunity Content</p><textarea id="set_equalOpportunity"></textarea></div>
+
+          <div class="subhead">Career Page Visibility Settings</div>
+          <div class="cols-3">
+            <label><input id="set_enableCareerPage" type="checkbox" checked /> Enable Career Page</label>
+            <label><input id="set_showOpenPositions" type="checkbox" checked /> Show Open Positions Section</label>
+            <label><input id="set_showBenefits" type="checkbox" checked /> Show Benefits Section</label>
+            <label><input id="set_showApplicationProcess" type="checkbox" checked /> Show Application Process</label>
+            <label><input id="set_showContact" type="checkbox" checked /> Show Contact Section</label>
+            <label><input id="set_showDownloads" type="checkbox" checked /> Show Downloads Section</label>
+          </div>
+
+          <div class="subhead">SEO</div>
+          <div class="cols-2">
+            <div><p class="field-label">SEO Title</p><input id="set_seoTitle" /></div>
+            <div><p class="field-label">Open Graph Image</p><input id="set_ogImage" /></div>
+            <div style="grid-column:1/-1;"><p class="field-label">SEO Description</p><textarea id="set_seoDescription"></textarea></div>
+            <div style="grid-column:1/-1;"><p class="field-label">SEO Keywords (comma separated)</p><input id="set_seoKeywords" /></div>
+          </div>
+
+          <div class="row">
+            <button id="loadSettingsBtn" class="btn">Load Settings</button>
+            <button id="saveSettingsBtn" class="btn btn-success">Save Settings</button>
+          </div>
+        </div>
+
+        <div id="guidesTab" class="grid card hidden">
+          <h3 style="margin:0;">Add Downloadable Guide</h3>
+          <div class="subhead">Basic Information</div>
+          <div class="cols-2">
+            <div><p class="field-label">Guide Title *</p><input id="guide_title" /></div>
+            <div><p class="field-label">Slug</p><input id="guide_slug" /></div>
+            <div style="grid-column:1/-1;"><p class="field-label">Short Description *</p><textarea id="guide_description"></textarea></div>
+            <div><p class="field-label">Category</p><select id="guide_category"><option>SaaS</option><option>DevOps</option><option>Cloud</option><option>Pay Pilot</option><option>AI</option><option>Security</option><option>Engineering</option><option>Business</option><option>Product</option><option>Other</option></select></div>
+            <div><p class="field-label">Guide Type</p><select id="guide_type"><option>Guide</option><option>Checklist</option><option>Toolkit</option><option>Workbook</option><option>Whitepaper</option><option>eBook</option><option>Template</option><option>Case Study</option></select></div>
+          </div>
+
+          <div class="subhead">Media</div>
+          <div class="cols-2">
+            <div><p class="field-label">Thumbnail Image</p><input id="guide_thumbnail" /></div>
+            <div><p class="field-label">Cover Image</p><input id="guide_cover" /></div>
+            <div><p class="field-label">Guide File</p><input id="guide_file" /></div>
+          </div>
+
+          <div class="subhead">Download Button</div>
+          <div class="cols-2">
+            <div><p class="field-label">Button Text</p><input id="guide_buttonText" value="Download" /></div>
+            <div><p class="field-label">External Download URL</p><input id="guide_externalUrl" /></div>
+          </div>
+
+          <div class="subhead">Display Settings</div>
+          <div class="cols-3">
+            <label><input id="guide_featured" type="checkbox" /> Featured Guide</label>
+            <div><p class="field-label">Display Order</p><input id="guide_order" type="number" min="0" value="1" /></div>
+            <div><p class="field-label">Status</p><select id="guide_status"><option>Active</option><option>Inactive</option></select></div>
+          </div>
+
+          <div class="subhead">Analytics</div>
+          <div class="cols-2">
+            <label><input id="guide_trackDownloads" type="checkbox" checked /> Track Downloads</label>
+            <div><p class="field-label">Download Count (read-only)</p><input id="guide_downloadCount" type="number" value="0" readonly /></div>
+          </div>
+
+          <div class="subhead">SEO</div>
+          <div class="cols-2">
+            <div><p class="field-label">SEO Title</p><input id="guide_seoTitle" /></div>
+            <div style="grid-column:1/-1;"><p class="field-label">SEO Description</p><textarea id="guide_seoDescription"></textarea></div>
+            <div style="grid-column:1/-1;"><p class="field-label">SEO Keywords (comma separated)</p><input id="guide_seoKeywords" /></div>
+          </div>
+
+          <div class="row">
+            <button id="guideAddBtn" class="btn btn-primary">Add Guide</button>
+            <button id="loadGuidesBtn" class="btn">Load Guides JSON</button>
+            <button id="saveGuidesBtn" class="btn btn-success">Save Guides JSON</button>
+          </div>
+          <textarea id="guidesEditor" class="json">{}</textarea>
+        </div>
+
+        <p id="status" class="status"></p>
+      </section>
+    </main>
+
+    <script>
+      const STORAGE_KEY = 'atek-firebase-cms-token';
+      const endpoints = {
+        'careers': '/api/admin/careers',
+        'job-categories': '/api/admin/job-categories',
+        'career-page-settings': '/api/admin/career-page-settings',
+        'downloadable-guides': '/api/admin/downloadable-guides',
+      };
+
+      const statusEl = document.getElementById('status');
+      const tabs = document.querySelectorAll('#tabs .tab');
+      const sections = {
+        careers: document.getElementById('careersTab'),
+        'job-categories': document.getElementById('jobCategoriesTab'),
+        'career-page-settings': document.getElementById('careerSettingsTab'),
+        'downloadable-guides': document.getElementById('guidesTab'),
+      };
+
+      function setStatus(message) {
+        statusEl.textContent = message || '';
+      }
+
+      function getToken() {
+        return localStorage.getItem(STORAGE_KEY) || '';
+      }
+
+      function slugify(value) {
+        return String(value || '')
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-');
+      }
+
+      function splitTags(raw) {
+        return String(raw || '').split(',').map(x => x.trim()).filter(Boolean);
+      }
+
+      async function authFetch(url, options = {}) {
+        const token = getToken();
+        if (!token) {
+          window.location.href = '/admin';
+          throw new Error('Missing session token');
+        }
+        const headers = Object.assign({}, options.headers || {}, { Authorization: 'Bearer ' + token });
+        const response = await fetch(url, Object.assign({}, options, { headers }));
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.error || 'Request failed');
+        return payload;
+      }
+
+      function activateTab(key) {
+        Object.keys(sections).forEach(sectionKey => {
+          sections[sectionKey].classList.toggle('hidden', sectionKey !== key);
+        });
+        tabs.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-key') === key));
+      }
+
+      tabs.forEach(btn => {
+        btn.addEventListener('click', () => {
+          activateTab(btn.getAttribute('data-key'));
+        });
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem(STORAGE_KEY);
+        window.location.href = '/admin';
+      });
+
+      async function addCareer() {
+        try {
+          const title = document.getElementById('career_jobTitle').value.trim();
+          if (!title) throw new Error('Job Title is required');
+          const jobCode = document.getElementById('career_jobCode').value.trim();
+          const key = slugify(jobCode || title);
+          const category = document.getElementById('career_category').value;
+          const seniority = document.getElementById('career_seniority').value;
+          const employmentType = document.getElementById('career_employmentType').value;
+          const country = document.getElementById('career_country').value.trim();
+          const state = document.getElementById('career_state').value.trim();
+          const city = document.getElementById('career_city').value.trim();
+          const officeLocation = document.getElementById('career_officeLocation').value.trim();
+          const workMode = document.getElementById('career_workMode').value;
+          const salary = document.getElementById('career_salary').value.trim();
+          const salaryType = document.getElementById('career_salaryType').value;
+          const currency = document.getElementById('career_currency').value.trim();
+          const experienceRequired = document.getElementById('career_experienceRequired').value.trim();
+          const educationRequired = document.getElementById('career_educationRequired').value.trim();
+          const shortDescription = document.getElementById('career_shortDescription').value.trim();
+          const description = document.getElementById('career_description').value.trim();
+          const responsibilities = document.getElementById('career_responsibilities').value.trim();
+          const requirements = document.getElementById('career_requirements').value.trim();
+          const preferredQualifications = document.getElementById('career_preferredQualifications').value.trim();
+          const requiredSkills = splitTags(document.getElementById('career_requiredSkills').value);
+          const technologies = splitTags(document.getElementById('career_technologies').value);
+          const applicationEmail = document.getElementById('career_applicationEmail').value.trim();
+          const externalApplyUrl = document.getElementById('career_externalUrl').value.trim();
+          const applicationDeadline = document.getElementById('career_deadline').value;
+          const numberOfOpenings = Number(document.getElementById('career_openings').value || 0);
+          const featured = document.getElementById('career_featured').checked;
+          const urgentHiring = document.getElementById('career_urgent').checked;
+          const published = document.getElementById('career_published').checked;
+          const displayOrder = Number(document.getElementById('career_displayOrder').value || 0);
+
+          const data = await authFetch(endpoints['careers']);
+          const careers = Array.isArray(data) ? {} : Object.assign({}, data || {});
+
+          careers[key] = {
+            slug: key,
+            title,
+            jobCode,
+            category,
+            jobCategory: category,
+            seniorityLevel: seniority,
+            employmentType,
+            type: employmentType,
+            country,
+            state,
+            city,
+            officeLocation,
+            workMode,
+            location: [city, state, country].filter(Boolean).join(', ') || officeLocation || workMode,
+            salary,
+            salaryType,
+            currency,
+            experienceRequired,
+            educationRequired,
+            shortDescription,
+            description: description || shortDescription,
+            responsibilities,
+            requirements,
+            preferredQualifications,
+            requiredSkills,
+            technologies,
+            skills: requiredSkills,
+            applicationEmail,
+            externalApplyUrl,
+            applicationDeadline,
+            numberOfOpenings,
+            featured,
+            urgentHiring,
+            published,
+            displayOrder,
+            date: new Date().toISOString(),
+          };
+
+          await authFetch(endpoints['careers'], {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(careers),
+          });
+
+          setStatus('Career added successfully.');
+        } catch (error) {
+          setStatus(error.message || 'Failed to add career');
+        }
+      }
+
+      async function addCategory() {
+        try {
+          const name = document.getElementById('cat_name').value.trim();
+          if (!name) throw new Error('Category Name is required');
+          const slugInput = document.getElementById('cat_slug').value.trim();
+          const slug = slugInput || slugify(name);
+          const description = document.getElementById('cat_description').value.trim();
+          const icon = document.getElementById('cat_icon').value.trim();
+          const bannerImage = document.getElementById('cat_banner').value.trim();
+          const order = Number(document.getElementById('cat_order').value || 0);
+          const status = document.getElementById('cat_status').value;
+          const showOnCareers = document.getElementById('cat_showCareers').checked;
+
+          const data = await authFetch(endpoints['job-categories']);
+          const categories = Array.isArray(data) ? {} : Object.assign({}, data || {});
+
+          categories[slug] = {
+            id: slug,
+            slug,
+            name,
+            description,
+            shortDescription: description,
+            icon,
+            bannerImage,
+            order,
+            status,
+            showOnCareers,
+            published: status === 'Active' && showOnCareers,
+          };
+
+          await authFetch(endpoints['job-categories'], {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(categories),
+          });
+
+          setStatus('Job category added successfully.');
+        } catch (error) {
+          setStatus(error.message || 'Failed to add category');
+        }
+      }
+
+      function createBenefitItem(data = {}) {
+        const item = document.createElement('div');
+        item.className = 'repeat-item grid';
+        item.innerHTML = `
+          <div class="cols-3">
+            <div><p class="field-label">Icon</p><input data-field="icon" value="${data.icon || ''}" /></div>
+            <div><p class="field-label">Benefit Title</p><input data-field="title" value="${data.title || ''}" /></div>
+            <div><p class="field-label">Display Order</p><input data-field="order" type="number" value="${data.order || 0}" /></div>
+            <div style="grid-column:1/-1;"><p class="field-label">Benefit Description</p><textarea data-field="description">${data.description || ''}</textarea></div>
+            <div><p class="field-label">Status</p><select data-field="status"><option ${data.status === 'Inactive' ? '' : 'selected'}>Active</option><option ${data.status === 'Inactive' ? 'selected' : ''}>Inactive</option></select></div>
+          </div>
+          <div class="row"><button class="btn" data-remove>Remove Benefit</button></div>
+        `;
+        item.querySelector('[data-remove]').addEventListener('click', () => item.remove());
+        return item;
+      }
+
+      function createStepItem(data = {}) {
+        const item = document.createElement('div');
+        item.className = 'repeat-item grid';
+        item.innerHTML = `
+          <div class="cols-3">
+            <div><p class="field-label">Step Number</p><input data-field="stepNumber" type="number" value="${data.stepNumber || 1}" /></div>
+            <div><p class="field-label">Step Title</p><input data-field="title" value="${data.title || ''}" /></div>
+            <div><p class="field-label">Icon</p><input data-field="icon" value="${data.icon || ''}" /></div>
+            <div style="grid-column:1/-1;"><p class="field-label">Step Description</p><textarea data-field="description">${data.description || ''}</textarea></div>
+            <div><p class="field-label">Status</p><select data-field="status"><option ${data.status === 'Inactive' ? '' : 'selected'}>Active</option><option ${data.status === 'Inactive' ? 'selected' : ''}>Inactive</option></select></div>
+          </div>
+          <div class="row"><button class="btn" data-remove>Remove Step</button></div>
+        `;
+        item.querySelector('[data-remove]').addEventListener('click', () => item.remove());
+        return item;
+      }
+
+      function collectRepeatItems(containerId) {
+        const container = document.getElementById(containerId);
+        return Array.from(container.children).map(item => {
+          const fields = item.querySelectorAll('[data-field]');
+          const out = {};
+          fields.forEach(field => {
+            const key = field.getAttribute('data-field');
+            out[key] = field.type === 'number' ? Number(field.value || 0) : field.value;
+          });
+          return out;
+        });
+      }
+
+      async function saveCareerSettings() {
+        try {
+          const payload = {
+            hero: {
+              title: document.getElementById('set_heroTitle').value.trim(),
+              subtitle: document.getElementById('set_heroSubtitle').value.trim(),
+              bannerImage: document.getElementById('set_heroBannerImage').value.trim(),
+              backgroundImage: document.getElementById('set_heroBackgroundImage').value.trim(),
+            },
+            whyJoin: {
+              title: document.getElementById('set_whyTitle').value.trim(),
+              description: document.getElementById('set_whyDescription').value.trim(),
+            },
+            benefits: collectRepeatItems('benefitsList'),
+            applicationProcess: collectRepeatItems('appStepsList'),
+            contact: {
+              email: document.getElementById('set_contactEmail').value.trim(),
+              officeLocation: document.getElementById('set_officeLocation').value.trim(),
+              phone: document.getElementById('set_contactPhone').value.trim(),
+              googleMaps: document.getElementById('set_googleMaps').value.trim(),
+            },
+            equalOpportunityContent: document.getElementById('set_equalOpportunity').value.trim(),
+            visibility: {
+              enableCareerPage: document.getElementById('set_enableCareerPage').checked,
+              showOpenPositionsSection: document.getElementById('set_showOpenPositions').checked,
+              showBenefitsSection: document.getElementById('set_showBenefits').checked,
+              showApplicationProcess: document.getElementById('set_showApplicationProcess').checked,
+              showContactSection: document.getElementById('set_showContact').checked,
+              showDownloadsSection: document.getElementById('set_showDownloads').checked,
+            },
+            seo: {
+              title: document.getElementById('set_seoTitle').value.trim(),
+              description: document.getElementById('set_seoDescription').value.trim(),
+              keywords: splitTags(document.getElementById('set_seoKeywords').value),
+              openGraphImage: document.getElementById('set_ogImage').value.trim(),
+            },
+            hero_title: document.getElementById('set_heroTitle').value.trim(),
+            hero_subtitle: document.getElementById('set_heroSubtitle').value.trim(),
+            why_join_title: document.getElementById('set_whyTitle').value.trim(),
+            why_join_description: document.getElementById('set_whyDescription').value.trim(),
+            application_title: 'How to Apply',
+            application_instructions: document.getElementById('set_whyDescription').value.trim(),
+            contact_email: document.getElementById('set_contactEmail').value.trim(),
+            office_location: document.getElementById('set_officeLocation').value.trim(),
+          };
+
+          await authFetch(endpoints['career-page-settings'], {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          setStatus('Career page settings saved.');
+        } catch (error) {
+          setStatus(error.message || 'Failed to save settings');
+        }
+      }
+
+      async function loadCareerSettings() {
+        try {
+          const data = await authFetch(endpoints['career-page-settings']);
+          const hero = data.hero || {};
+          const whyJoin = data.whyJoin || {};
+          const contact = data.contact || {};
+          const visibility = data.visibility || {};
+          const seo = data.seo || {};
+
+          document.getElementById('set_heroTitle').value = hero.title || data.hero_title || '';
+          document.getElementById('set_heroSubtitle').value = hero.subtitle || data.hero_subtitle || '';
+          document.getElementById('set_heroBannerImage').value = hero.bannerImage || '';
+          document.getElementById('set_heroBackgroundImage').value = hero.backgroundImage || '';
+          document.getElementById('set_whyTitle').value = whyJoin.title || data.why_join_title || '';
+          document.getElementById('set_whyDescription').value = whyJoin.description || data.why_join_description || '';
+          document.getElementById('set_contactEmail').value = contact.email || data.contact_email || '';
+          document.getElementById('set_officeLocation').value = contact.officeLocation || data.office_location || '';
+          document.getElementById('set_contactPhone').value = contact.phone || '';
+          document.getElementById('set_googleMaps').value = contact.googleMaps || '';
+          document.getElementById('set_equalOpportunity').value = data.equalOpportunityContent || '';
+          document.getElementById('set_enableCareerPage').checked = visibility.enableCareerPage !== false;
+          document.getElementById('set_showOpenPositions').checked = visibility.showOpenPositionsSection !== false;
+          document.getElementById('set_showBenefits').checked = visibility.showBenefitsSection !== false;
+          document.getElementById('set_showApplicationProcess').checked = visibility.showApplicationProcess !== false;
+          document.getElementById('set_showContact').checked = visibility.showContactSection !== false;
+          document.getElementById('set_showDownloads').checked = visibility.showDownloadsSection !== false;
+          document.getElementById('set_seoTitle').value = seo.title || '';
+          document.getElementById('set_seoDescription').value = seo.description || '';
+          document.getElementById('set_seoKeywords').value = Array.isArray(seo.keywords) ? seo.keywords.join(', ') : '';
+          document.getElementById('set_ogImage').value = seo.openGraphImage || '';
+
+          const benefitsList = document.getElementById('benefitsList');
+          benefitsList.innerHTML = '';
+          (data.benefits || []).forEach(item => benefitsList.appendChild(createBenefitItem(item)));
+          if (!benefitsList.children.length) benefitsList.appendChild(createBenefitItem());
+
+          const appStepsList = document.getElementById('appStepsList');
+          appStepsList.innerHTML = '';
+          (data.applicationProcess || []).forEach(item => appStepsList.appendChild(createStepItem(item)));
+          if (!appStepsList.children.length) appStepsList.appendChild(createStepItem());
+
+          setStatus('Career page settings loaded.');
+        } catch (error) {
+          setStatus(error.message || 'Failed to load settings');
+        }
+      }
+
+      async function addGuide() {
+        try {
+          const title = document.getElementById('guide_title').value.trim();
+          if (!title) throw new Error('Guide Title is required');
+          const slugInput = document.getElementById('guide_slug').value.trim();
+          const slug = slugInput || slugify(title);
+          const description = document.getElementById('guide_description').value.trim();
+          if (!description) throw new Error('Short Description is required');
+
+          const data = await authFetch(endpoints['downloadable-guides']);
+          const guides = Array.isArray(data) ? {} : Object.assign({}, data || {});
+
+          guides[slug] = {
+            slug,
+            title,
+            description,
+            category: document.getElementById('guide_category').value,
+            guideType: document.getElementById('guide_type').value,
+            thumbnailImage: document.getElementById('guide_thumbnail').value.trim(),
+            coverImage: document.getElementById('guide_cover').value.trim(),
+            pdfFile: document.getElementById('guide_file').value.trim(),
+            buttonText: document.getElementById('guide_buttonText').value.trim() || 'Download',
+            externalDownloadUrl: document.getElementById('guide_externalUrl').value.trim(),
+            featured: document.getElementById('guide_featured').checked,
+            order: Number(document.getElementById('guide_order').value || 1),
+            status: document.getElementById('guide_status').value,
+            published: document.getElementById('guide_status').value === 'Active',
+            trackDownloads: document.getElementById('guide_trackDownloads').checked,
+            downloadCount: Number(document.getElementById('guide_downloadCount').value || 0),
+            seo: {
+              title: document.getElementById('guide_seoTitle').value.trim(),
+              description: document.getElementById('guide_seoDescription').value.trim(),
+              keywords: splitTags(document.getElementById('guide_seoKeywords').value),
+            },
+            icon: document.getElementById('guide_thumbnail').value.trim(),
+            date: new Date().toISOString(),
+          };
+
+          document.getElementById('guidesEditor').value = JSON.stringify(guides, null, 2);
+
+          await authFetch(endpoints['downloadable-guides'], {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(guides),
+          });
+
+          setStatus('Guide added successfully.');
+        } catch (error) {
+          setStatus(error.message || 'Failed to add guide');
+        }
+      }
+
+      async function loadGuidesJson() {
+        try {
+          const data = await authFetch(endpoints['downloadable-guides']);
+          document.getElementById('guidesEditor').value = JSON.stringify(data, null, 2);
+          setStatus('Guides loaded.');
+        } catch (error) {
+          setStatus(error.message || 'Failed to load guides');
+        }
+      }
+
+      async function saveGuidesJson() {
+        try {
+          const parsed = JSON.parse(document.getElementById('guidesEditor').value || '{}');
+          await authFetch(endpoints['downloadable-guides'], {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(parsed),
+          });
+          setStatus('Guides JSON saved.');
+        } catch (error) {
+          setStatus(error.message || 'Failed to save guides JSON');
+        }
+      }
+
+      document.getElementById('careerAddBtn').addEventListener('click', addCareer);
+      document.getElementById('catAddBtn').addEventListener('click', addCategory);
+      document.getElementById('saveSettingsBtn').addEventListener('click', saveCareerSettings);
+      document.getElementById('loadSettingsBtn').addEventListener('click', loadCareerSettings);
+      document.getElementById('guideAddBtn').addEventListener('click', addGuide);
+      document.getElementById('loadGuidesBtn').addEventListener('click', loadGuidesJson);
+      document.getElementById('saveGuidesBtn').addEventListener('click', saveGuidesJson);
+      document.getElementById('addBenefitBtn').addEventListener('click', () => {
+        document.getElementById('benefitsList').appendChild(createBenefitItem());
+      });
+      document.getElementById('addStepBtn').addEventListener('click', () => {
+        document.getElementById('appStepsList').appendChild(createStepItem());
+      });
+
+      document.getElementById('cat_name').addEventListener('input', e => {
+        const slugEl = document.getElementById('cat_slug');
+        if (!slugEl.dataset.touched) slugEl.value = slugify(e.target.value);
+      });
+      document.getElementById('cat_slug').addEventListener('input', e => {
+        e.target.dataset.touched = 'true';
+      });
+      document.getElementById('guide_title').addEventListener('input', e => {
+        const slugEl = document.getElementById('guide_slug');
+        if (!slugEl.dataset.touched) slugEl.value = slugify(e.target.value);
+      });
+      document.getElementById('guide_slug').addEventListener('input', e => {
+        e.target.dataset.touched = 'true';
+      });
+
+      if (!getToken()) {
+        window.location.href = '/admin';
+      }
+
+      activateTab('careers');
+      document.getElementById('benefitsList').appendChild(createBenefitItem());
+      document.getElementById('appStepsList').appendChild(createStepItem());
+    </script>
+  </body>
+</html>
